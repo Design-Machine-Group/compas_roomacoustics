@@ -4,12 +4,15 @@ import json
 from compas.geometry import distance_point_point
 from compas.geometry import vector_from_points
 
+from copy import deepcopy
+
 
 def shoot_rays(room):
     #TODO: energy has to be taken out according to absorption coefficient
     #TODO: ray loop should be a while loop, energy and time dependent
     #TODO: figure out a decent way to know which surface was hit
     #TODO: Check energy calculation, use different bs in some srfs
+    #TODO: compute ray min energy at source, use to compare and kill ray
     reflectors = room.reflectors
     init_rays = room.source['init_rays']
     src = room.source['src_pt']
@@ -26,20 +29,26 @@ def shoot_rays(room):
             src_ = src
         w = room.source['init_rays'][dk]['power']
         rays[dk] = {'dir': dir, 'reflections':{}}
-        for i in range(10): # this number should eventually be automated (while loop)
+        time = 0
+        for i in range(50): # this number should eventually be automated (while loop)
             ray = rs.ShootRay(reflecting, src_, dir, 2)
             srf = rs.PointClosestObject(ray[0], ref_srf)[0] # must be None in first ray!!!
-            abs = ref[str(srf)]['abs_coeff']
-            for wk in w: w[wk] *= (1 - abs[wk])
+            if i > 0:
+                abs = ref[str(srf)]['abs_coeff']
+                for wk in w:
+                    w[wk] *= (1 - abs[wk])
             l = distance_point_point(ray[0], ray[1])
             t = int((l / 343.0) * 1000)
             rays[dk]['reflections'][i] = {'time': t,
                                           'length': l,
-                                          'power': w,
+                                          'power': deepcopy(w),
                                           'line': ((ray[0].X, ray[0].Y, ray[0].Z),
                                                    (ray[1].X, ray[1].Y, ray[1].Z))}
             dir = vector_from_points(ray[1], ray[2])
             src_ = ray[1]
+            if time >= room.ctime:
+                break
+            time += t
     room.rays = rays
 
 def rays_to_json(rays, filepath):
@@ -69,7 +78,7 @@ if __name__ == '__main__':
 
     source = {'type': 'fibonacci',
               'layer': 'source',
-              'n': 10,
+              'n': 1000,
               'w': {'100':.1, '200':.1, '300':.1}}
 
     rec_dict = {'layer': 'recievers',
@@ -78,4 +87,4 @@ if __name__ == '__main__':
     srf_layer = 'reflectors'
     room = make_scene(source, rec_dict, srf_layer)
     shoot_rays(room)
-    visualize_rays(room.rays, ref_order=2)
+    visualize_rays(room.rays, keys= [255], ref_order=None, dot='w')
