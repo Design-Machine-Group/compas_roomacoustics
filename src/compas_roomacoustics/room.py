@@ -8,4 +8,3 @@ class Room(object):
         self.reflectors = {}
         self.ctime = 1000. # cuttoff time in miliseconds
         self.rays = {}
-        print 'init fucntion'

@@ -9,6 +9,7 @@ from math import degrees
 
 def make_scene(source, rec_dict, srf_layer):
     #TODO: add make reflectors function (Absorption coefficients from layer names?)
+    #TODO: add min enegy as a room property
     reflectors = reflectors_from_layers(srf_layer)
     if source['type'] == 'fibonacci':
         source = fibonacci_source(source)
@@ -29,6 +30,7 @@ def reflectors_from_layers(srf_layer):
     return reflectors
 
 def fibonacci_source(source):
+    min_power = .03
     n = int(source['n'])
     pt = rs.ObjectsByLayer(source['layer'])[0]
     src_pt = rs.PointCoordinates(pt)
@@ -43,11 +45,14 @@ def fibonacci_source(source):
         phi = (i % n) * increment
         x = math.cos(phi) * r
         z = math.sin(phi) * r
-        init_rays[i] = {'v':[x, y, z], 'power': {}}
+        init_rays[i] = {'v':[x, y, z], 'power': {}, 'min_power': {}}
 
     w_dict = source['w']
     for wk in w_dict:
-        for rk in init_rays: init_rays[rk]['power'][wk] = w_dict[wk] / float(n)
+        for rk in init_rays:
+            init_rays[rk]['power'][wk] = w_dict[wk] / float(n)
+            init_rays[rk]['min_power'][wk] = min_power * (w_dict[wk] / float(n))
+
 
     source['init_rays'] = init_rays
     source['src_pt'] = src_pt
@@ -61,7 +66,6 @@ def recs_from_layer(rec_dict):
         rec = rs.PointCoordinates(pt)
         recs[str(rec)] = {'r': rec_r, 'xyz': rec, 'v':(4./3.) * math.pi * rec_r ** 3}
     return recs
-
 
 if __name__ == '__main__':
     for i in range(50): print ''
