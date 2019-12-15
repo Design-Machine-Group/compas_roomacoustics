@@ -9,7 +9,7 @@ from math import degrees
 
 def make_scene(source, rec_dict, srf_layer):
     #TODO: add make reflectors function (Absorption coefficients from layer names?)
-    #TODO: add min enegy as a room property
+    #TODO: add min energy as a room property
     reflectors = reflectors_from_layers(srf_layer)
     if source['type'] == 'fibonacci':
         source = fibonacci_source(source)

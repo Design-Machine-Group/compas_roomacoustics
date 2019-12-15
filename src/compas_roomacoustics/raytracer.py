@@ -8,11 +8,6 @@ from copy import deepcopy
 
 
 def shoot_rays(room):
-    #TODO: energy has to be taken out according to absorption coefficient
-    #TODO: ray loop should be a while loop, energy and time dependent
-    #TODO: figure out a decent way to know which surface was hit
-    #TODO: Check energy calculation, use different bs in some srfs
-    #TODO: compute ray min energy at source, use to compare and kill ray
     reflectors = room.reflectors
     init_rays = room.source['init_rays']
     src = room.source['src_pt']
@@ -36,7 +31,7 @@ def shoot_rays(room):
         while time < room.ctime and not min_power:
             i += 1
             ray = rs.ShootRay(reflecting, src_, dir, 2)
-            srf = rs.PointClosestObject(ray[0], ref_srf)[0] # must be None in first ray!!!
+            srf = rs.PointClosestObject(ray[0], ref_srf)[0]
             mp_list = []
             if i > 0:
                 abs = ref[str(srf)]['abs_coeff']
@@ -84,7 +79,7 @@ if __name__ == '__main__':
 
     source = {'type': 'fibonacci',
               'layer': 'source',
-              'n': 1000,
+              'n': 10000,
               'w': {'100':.1, '200':.1, '300':.1}}
 
     rec_dict = {'layer': 'recievers',
@@ -93,4 +88,4 @@ if __name__ == '__main__':
     srf_layer = 'reflectors'
     room = make_scene(source, rec_dict, srf_layer)
     shoot_rays(room)
-    visualize_rays(room.rays, keys= [0], ref_order=None, dot='w')
+    visualize_rays(room.rays, keys= [60,6000, 18000], ref_order=None, dot=None)
