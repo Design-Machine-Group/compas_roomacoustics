@@ -3,6 +3,8 @@ import math
 
 from compas.utilities import geometric_key
 
+from compas.geometry import centroid_points
+
 class Room(object):
     """Definition of a room object for room acoustics analysis.
 
@@ -21,8 +23,19 @@ class Room(object):
 
         self.source = {}            # dict
         self.recievers = {}         # dict
-        self.reflectors = {}        # dict
+        self.surfaces = {}        # dict
         self.rays = {}              # dict
+
+
+    # ---------------------------
+    # Room acoustic calcultations
+    # ---------------------------
+
+    # def compute_room_volume(self):
+    #     pass
+    #
+    # def compute_sabine_rt(self):
+    #     pass
 
 
     # ---------------------------
@@ -30,6 +43,13 @@ class Room(object):
     # ---------------------------
 
     def add_frequencies(self, freq_list):
+        """Creates the frequencies property from list.
+
+        Parameters
+        ----------
+        freq_list: list
+            The sound frequencies in Hz.
+        """
         self.freq = {i: f for i, f in enumerate(freq_list)}
 
     def add_fib_source(self, power):
@@ -38,14 +58,12 @@ class Room(object):
 
         Parameters
         ----------
-
         power : float or dict
             The power of the source per frequency in watts. If a single float is
             is given, the same power will be attributed to all frequencies.
 
         Notes:
         ------
-
         The source power is distributed evenly in all directions.
 
         """
@@ -79,7 +97,6 @@ class Room(object):
 
         Parameters
         ----------
-
         pts : list
             List of reciever coordinates.
         radius: float
@@ -91,22 +108,61 @@ class Room(object):
                                   'xyz': list(pt),
                                   'v':(4./3.) * math.pi * radius ** 3}
 
+    def add_room_surfaces(self, srfs):
+        """Adds sound reflectinc surfaces to the model.
 
-    # def add_reflectors_from_layers(srf_layer):
-    #     global_coeff = {'100':.1, '200':.2, '300':.3}
-    #     srfs = rs.ObjectsByLayer(srf_layer)
-    #     reflectors = {}
-    #     for i, srf in enumerate(srfs):
-    #         reflectors[str(srf)] = {'guid': srf, 'abs_coeff': global_coeff}
-    #     return reflectors
+        Parameters
+        ----------
+        srfs: list
+            The guids of the sound relfecting surfaces.
+
+        Notes
+        -----
+        These should be rhino nurbs four point surfaces
+
+        """
+        for srf in srfs:
+            centroid = centroid_points(rs.SurfacePoints(srf))
+            gk = geometric_key(centroid)
+            room.surfaces[gk] = {'guid': srf}
+
+    def assign_abs_coeff(self, srfs, coeff_dict):
+        """Assigns the absorption cooefficient of a list of surfaces
+
+        Parameters
+        ----------
+        srfs: list
+            The surfaces to assign the absorption to.
+        coeff_dict: dict
+            The frequency dependent absorption coefficients.
+        """
+
+        for srf in srfs:
+            centroid = centroid_points(rs.SurfacePoints(srf))
+            gk = geometric_key(centroid)
+            room.surfaces[gk] = {'abs_coeff': coeff_dict}
+
+
 
 if __name__ == '__main__':
     import rhinoscriptsyntax as rs
     for i in range(50): print ''
+    rs.CurrentLayer('Default')
+    rs.DeleteObjects(rs.ObjectsByLayer('Default'))
 
     pts = [rs.PointCoordinates(pt) for pt in rs.ObjectsByLayer('recievers')]
+    srfs = rs.ObjectsByLayer('reflectors')
+    srf_ = rs.ObjectsByLayer('back_srf')
 
     room = Room()
     room.add_frequencies(range(100,120))
     room.add_fib_source(power=.1)
     room.add_spherical_recs(pts, radius=.3)
+    room.add_room_surfaces(srfs + srf_)
+    coeff_dict = {fk: .2 for fk in room.freq.values()}
+    room.assign_abs_coeff(srfs, coeff_dict)
+    coeff_dict = {fk: .7 for fk in room.freq.values()}
+    room.assign_abs_coeff(srf_, coeff_dict)
+
+    for sk in room.surfaces:
+        rs.AddTextDot(str(room.surfaces[sk]['abs_coeff'][119]), sk)
