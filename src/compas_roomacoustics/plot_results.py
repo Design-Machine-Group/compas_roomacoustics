@@ -18,7 +18,7 @@ def visualize_rays(rays, keys=None, ref_order=None, layer='Default', dot=None):
                 u, v = rays[rk]['reflections'][lk]['line']
                 line = rs.AddLine(u, v)
                 if dot == 'w':
-                    w = rays[rk]['reflections'][lk]['power']['100']
+                    w = rays[rk]['reflections'][lk]['power'][100]
                     rs.AddTextDot(str(w), rs.CurveMidPoint(line))
                 if dot == 't':
                     t = rays[rk]['reflections'][lk]['time']

@@ -1,8 +1,7 @@
 import json
 import math
-
+import rhinoscriptsyntax as rs
 from compas.utilities import geometric_key
-
 from compas.geometry import centroid_points
 
 class Room(object):
@@ -12,7 +11,11 @@ class Room(object):
     ----------
     ...
     """
-
+    # TODO: data setting and updating
+    # TODO: from/to json
+    # TODO: volume from is_boundary property
+    # TODO sabine RT
+    
     def __init__(self):
         self.tol = '3f'             # tolerance for generating geometric keys
         self.freq = {}              # dictionary of frequencies used in the analysis
@@ -52,12 +55,14 @@ class Room(object):
         """
         self.freq = {i: f for i, f in enumerate(freq_list)}
 
-    def add_fib_source(self, power):
+    def add_fib_source(self, xyz, power):
         """Creates a uniform point source using fibonacci vector
         distribution.
 
         Parameters
         ----------
+        xyz: list
+            Source coordinates.
         power : float or dict
             The power of the source per frequency in watts. If a single float is
             is given, the same power will be attributed to all frequencies.
@@ -67,6 +72,7 @@ class Room(object):
         The source power is distributed evenly in all directions.
 
         """
+        self.source['xyz'] = xyz
         self.source['type'] = 'fibbonaci_uniform'
 
         if type(power) == float:
@@ -104,48 +110,40 @@ class Room(object):
         """
         for pt in pts:
             gk = geometric_key(pt, self.tol)
-            room.recievers[gk] = {'radius': radius,
+            self.recievers[gk] = {'radius': radius,
                                   'xyz': list(pt),
                                   'v':(4./3.) * math.pi * radius ** 3}
 
-    def add_room_surfaces(self, srfs):
+    def add_room_surfaces(self, srfs, material, is_boundary=False):
         """Adds sound reflectinc surfaces to the model.
 
         Parameters
         ----------
         srfs: list
             The guids of the sound relfecting surfaces.
+        material: object
+            The matwerial object to be assigned to the surface.
+        is_boundary: bool
+            Is the surface part of the room boundary. Defaults to False.
 
         Notes
         -----
-        These should be rhino nurbs four point surfaces
+        These should be rhino nurbs four point surfaces.
 
         """
         for srf in srfs:
             centroid = centroid_points(rs.SurfacePoints(srf))
             gk = geometric_key(centroid)
-            room.surfaces[gk] = {'guid': srf}
-
-    def assign_abs_coeff(self, srfs, coeff_dict):
-        """Assigns the absorption cooefficient of a list of surfaces
-
-        Parameters
-        ----------
-        srfs: list
-            The surfaces to assign the absorption to.
-        coeff_dict: dict
-            The frequency dependent absorption coefficients.
-        """
-
-        for srf in srfs:
-            centroid = centroid_points(rs.SurfacePoints(srf))
-            gk = geometric_key(centroid)
-            room.surfaces[gk] = {'abs_coeff': coeff_dict}
+            self.surfaces[gk] = {'guid': srf,
+                                 'material': material,
+                                 'is_boundary': is_boundary}
 
 
 
 if __name__ == '__main__':
-    import rhinoscriptsyntax as rs
+
+    from material import Material
+
     for i in range(50): print ''
     rs.CurrentLayer('Default')
     rs.DeleteObjects(rs.ObjectsByLayer('Default'))
@@ -156,13 +154,16 @@ if __name__ == '__main__':
 
     room = Room()
     room.add_frequencies(range(100,120))
-    room.add_fib_source(power=.1)
+    room.add_fib_source([40,20,2], power=.1)
     room.add_spherical_recs(pts, radius=.3)
-    room.add_room_surfaces(srfs + srf_)
-    coeff_dict = {fk: .2 for fk in room.freq.values()}
-    room.assign_abs_coeff(srfs, coeff_dict)
-    coeff_dict = {fk: .7 for fk in room.freq.values()}
-    room.assign_abs_coeff(srf_, coeff_dict)
 
-    for sk in room.surfaces:
-        rs.AddTextDot(str(room.surfaces[sk]['abs_coeff'][119]), sk)
+    m1 = Material()
+    m1.absorption = {fk: .2 for fk in room.freq.values()}
+    room.add_room_surfaces(srfs, m1, True)
+
+    m2 = Material()
+    m2.absorption = {fk: .7 for fk in room.freq.values()}
+    room.add_room_surfaces(srf_, m2, True)
+
+    for srf in room.surfaces:
+        rs.AddTextDot(room.surfaces[srf]['material'].absorption[110], srf)

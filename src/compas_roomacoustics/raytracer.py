@@ -8,33 +8,40 @@ from copy import deepcopy
 
 
 def shoot_rays(room):
-    reflectors = room.reflectors
+    """Performs the raytracing process using the room properties. Calculates
+    all reflections, including geometry, times and energy values per segment.
+
+    Parameters
+    ----------
+    room: object
+        The room object to be analyzed.
+
+    """
+    #TODO: Figure out if it is possible to cut ray one reflection short
+
     init_rays = room.source['init_rays']
-    src = room.source['src_pt']
-    ref = room.reflectors
-    ref_srf = [ref[gk]['guid'] for gk in ref]
+    ref_srf = [room.surfaces[gk]['guid'] for gk in room.surfaces]
+    ref_map = {room.surfaces[sk]['guid']:sk for sk in room.surfaces}
+
 
     rays = {}
-    reflecting = reflectors
     for dk in init_rays:
-        dir = init_rays[dk]['v']
-        if 'src_pt' in init_rays[dk]:
-            src_ = init_rays[dk]['src_pt']
-        else:
-            src_ = src
-        w     = room.source['init_rays'][dk]['power']
-        min_w = room.source['init_rays'][dk]['min_power']
-        rays[dk] = {'dir': dir, 'reflections':{}}
-        time = 0
-        i = 0
-        min_power = False
+        dir         = init_rays[dk]['v']
+        src_        = room.source['xyz']
+        w           = room.source['init_rays'][dk]['power']
+        min_w       = room.source['init_rays'][dk]['min_power']
+        rays[dk]    = {'dir': dir, 'reflections':{}}
+        time        = 0
+        i           = 0
+        min_power   = False
         while time < room.ctime and not min_power:
             i += 1
-            ray = rs.ShootRay(reflecting, src_, dir, 2)
+            ray = rs.ShootRay(ref_srf, src_, dir, 2)
             srf = rs.PointClosestObject(ray[0], ref_srf)[0]
             mp_list = []
             if i > 0:
-                abs = ref[str(srf)]['abs_coeff']
+                sk = ref_map[srf]
+                abs = room.surfaces[sk]['material'].absorption
                 for wk in w:
                     w[wk] *= (1 - abs[wk])
                     mp_list.append(w[wk] < min_w[wk])
@@ -52,40 +59,50 @@ def shoot_rays(room):
 
     room.rays = rays
 
-def rays_to_json(rays, filepath):
-    with open(filepath, 'w+') as fp:
-        json.dump(rays, fp)
-
-def recs_to_json(recs, filepath):
-    with open(filepath, 'w+') as fp:
-        json.dump(recs, fp)
+# def rays_to_json(rays, filepath):
+#     with open(filepath, 'w+') as fp:
+#         json.dump(rays, fp)
+#
+# def recs_to_json(recs, filepath):
+#     with open(filepath, 'w+') as fp:
+#         json.dump(recs, fp)
 
 if __name__ == '__main__':
-    import make_scene
-    reload(make_scene)
-    from make_scene import make_scene
+    import room
+    reload(room)
+    from room import Room
+
+    from material import Material
+    import rhinoscriptsyntax as rs
 
     import plot_results
     reload(plot_results)
     from plot_results import visualize_rays
 
-
     for i in range(50): print ''
-    if not rs.IsLayer('Scene'):
-        rs.AddLayer('Scene', color=(50, 50, 255))
-    rs.DeleteObjects(rs.ObjectsByLayer('Scene'))
+    rs.CurrentLayer('Default')
     rs.DeleteObjects(rs.ObjectsByLayer('Default'))
-    rs.CurrentLayer('Scene')
 
-    source = {'type': 'fibonacci',
-              'layer': 'source',
-              'n': 10000,
-              'w': {'100':.1, '200':.1, '300':.1}}
+    pts = [rs.PointCoordinates(pt) for pt in rs.ObjectsByLayer('recievers')]
+    srfs = rs.ObjectsByLayer('reflectors')
+    srf_ = rs.ObjectsByLayer('back_srf')
 
-    rec_dict = {'layer': 'recievers',
-                'rec_r': .3}
+    room = Room()
+    room.num_rays= 100
+    room.add_frequencies(range(100,120))
+    s_xyz = rs.PointCoordinates(rs.ObjectsByLayer('source')[0])
+    room.add_fib_source(s_xyz, power=.1)
+    room.add_spherical_recs(pts, radius=.3)
 
-    srf_layer = 'reflectors'
-    room = make_scene(source, rec_dict, srf_layer)
+    m1 = Material()
+    m1.absorption = {fk: .2 for fk in room.freq.values()}
+    room.add_room_surfaces(srfs, m1, True)
+
+    m2 = Material()
+    m2.absorption = {fk: .99 for fk in room.freq.values()}
+    room.add_room_surfaces(srf_, m2, True)
+
+    rs.AddTextDot('s', room.source['xyz'])
+
     shoot_rays(room)
-    visualize_rays(room.rays, keys= [60,6000, 18000], ref_order=None, dot=None)
+    visualize_rays(room.rays, keys= [60], ref_order=None, dot='w')
