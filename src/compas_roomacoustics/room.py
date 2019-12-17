@@ -4,6 +4,22 @@ import rhinoscriptsyntax as rs
 from compas.utilities import geometric_key
 from compas.geometry import centroid_points
 
+
+TPL = """
+================================================================================
+Room summary
+================================================================================
+
+- name: {}
+- surfaces: {}
+- materials: {}
+- rays: {}
+- frequencies: {}
+- ctime: {} (ms)
+
+================================================================================
+"""
+
 class Room(object):
     """Definition of a room object for room acoustics analysis.
 
@@ -15,19 +31,110 @@ class Room(object):
     # TODO: from/to json
     # TODO: volume from is_boundary property
     # TODO sabine RT
-    
-    def __init__(self):
-        self.tol = '3f'             # tolerance for generating geometric keys
-        self.freq = {}              # dictionary of frequencies used in the analysis
-        self.num_rays = 1000        # number of rays used in analysis
-        self.source_pt = None       # source coordinates
-        self.ctime = 1000.          # cuttoff time in miliseconds
-        self.min_power = .03        # minimum percentage of power in rays
+    # TODO: fix the serialising problem
+    # TODO: save surface points (all should be 4pt surfaces)
 
-        self.source = {}            # dict
-        self.recievers = {}         # dict
-        self.surfaces = {}        # dict
-        self.rays = {}              # dict
+    def __init__(self):
+        self.name       = 'Acoustic_Room'
+        self.tol        = '3f' # tolerance for generating geometric keys
+        self.num_rays   = 1000 # number of rays used in analysis
+        self.ctime      = 1000. # cuttoff time in miliseconds
+        self.min_power  = .03 # minimum percentage of power in rays
+
+        self.source     = {} # dict
+        self.receivers  = {} # dict
+        self.surfaces   = {} # dict
+        self.rays       = {} # dict
+        self.freq       = {} # dictionary of frequencies used in the analysis
+        self.materials  = {} # dict
+
+    # def summary(self):
+    #     """Print a summary of the room."""
+    #     nsrf = len(self.surfaces)
+    #     nmat = len(self.materials)
+    #     nfreq = len(self.freq)
+    #     s = TPL.format(self.name, nsrf, nmat, self.num_rays, nfreq, self.ctime)
+    #     print(s)
+    #
+    #
+    # @property
+    # def data(self):
+    #     """dict : A data dict representing the room data structure for serialisation.
+    #     """
+    #     data = {'name'          : self.name,
+    #             'tol'           : self.tol,
+    #             'num_rays'      : self.num_rays,
+    #             'ctime'         : self.ctime,
+    #             'min_power'     : self.min_power,
+    #             'source'        : self.source,
+    #             'receivers'     : self.receivers,
+    #             # 'surfaces'      : self.surfaces,
+    #             'rays'          : self.rays,
+    #             'freq'          : self.freq,
+    #             'materials'     : self.materials}
+    #     return data
+    #
+    # @data.setter
+    # def data(self, data):
+    #     tol             = data.get('tol') or {}
+    #     num_rays        = data.get('num_rays') or {}
+    #     ctime           = data.get('ctime') or {}
+    #     min_power       = data.get('min_power') or {}
+    #     source          = data.get('source') or {}
+    #     receivers       = data.get('receivers') or {}
+    #     surfaces        = data.get('surfaces') or {}
+    #     rays            = data.get('rays') or {}
+    #     freq            = data.get('freq') or {}
+    #     materials       = data.get('materials' or {})
+    #
+    #     self.tol        = tol
+    #     self.num_rays   = num_rays
+    #     self.ctime      = ctime
+    #     self.min_power  = min_power
+    #
+    #     self.source.update(source)
+    #     self.receivers.update(receivers)
+    #     self.surfaces.update(surfaces)
+    #     self.rays.update(rays)
+    #     self.freq.update(freq)
+    #
+    # def to_json(self, filepath):
+    #     """Serialise the structured data representing the data structure to json.
+    #
+    #     Parameters
+    #     ----------
+    #     filepath : str
+    #         The path to the json file.
+    #
+    #     """
+    #     with open(filepath, 'w+') as fp:
+    #         json.dump(self.data, fp)
+    #
+    # @classmethod
+    # def from_json(cls, filepath):
+    #     """Construct a room datastructure from structured data contained in a json file.
+    #
+    #     Parameters
+    #     ----------
+    #     filepath : str
+    #         The path to the json file.
+    #
+    #     Returns
+    #     -------
+    #     object
+    #         An object of the type of ``cls``.
+    #
+    #     Note
+    #     ----
+    #     This constructor method is meant to be used in conjuction with the
+    #     corresponding *to_json* method.
+    #
+    #     """
+    #     with open(filepath, 'r') as fp:
+    #         data = json.load(fp)
+    #     room = cls()
+    #     room.data = data
+    #     return room
 
 
     # ---------------------------
@@ -72,45 +179,21 @@ class Room(object):
         The source power is distributed evenly in all directions.
 
         """
-        self.source['xyz'] = xyz
-        self.source['type'] = 'fibbonaci_uniform'
-
-        if type(power) == float:
-            self.source['power'] = {wk:power for wk in self.freq.values()}
-        else:
-            self.source['power'] = power
-
-        offset = 2. / self.num_rays
-        increment = math.pi * (3. - math.sqrt(5.))
-        init_rays = {}
-        for i in range(self.num_rays):
-            y = ((i * offset) - 1) + (offset / 2)
-            r = math.sqrt(1 - pow(y,2))
-            phi = (i % self.num_rays) * increment
-            x = math.cos(phi) * r
-            z = math.sin(phi) * r
-            init_rays[i] = {'v':[x, y, z], 'power': {}, 'min_power': {}}
-
-
-        for wk in self.source['power']:
-            for rk in init_rays:
-                init_rays[rk]['power'][wk] = self.source['power'][wk] / float(self.num_rays)
-                init_rays[rk]['min_power'][wk] = self.min_power * (self.source['power'][wk] / float(self.num_rays))
-        self.source['init_rays'] = init_rays
+        
 
     def add_spherical_recs(self, pts, radius):
-        """Creates a disctionary of spherical recievers.
+        """Creates a disctionary of spherical receivers.
 
         Parameters
         ----------
         pts : list
             List of reciever coordinates.
         radius: float
-            Radius of all recievers
+            Radius of all receivers
         """
         for pt in pts:
             gk = geometric_key(pt, self.tol)
-            self.recievers[gk] = {'radius': radius,
+            self.receivers[gk] = {'radius': radius,
                                   'xyz': list(pt),
                                   'v':(4./3.) * math.pi * radius ** 3}
 
@@ -139,7 +222,6 @@ class Room(object):
                                  'is_boundary': is_boundary}
 
 
-
 if __name__ == '__main__':
 
     from material import Material
@@ -148,22 +230,25 @@ if __name__ == '__main__':
     rs.CurrentLayer('Default')
     rs.DeleteObjects(rs.ObjectsByLayer('Default'))
 
-    pts = [rs.PointCoordinates(pt) for pt in rs.ObjectsByLayer('recievers')]
+    pts = [rs.PointCoordinates(pt) for pt in rs.ObjectsByLayer('receivers')]
     srfs = rs.ObjectsByLayer('reflectors')
     srf_ = rs.ObjectsByLayer('back_srf')
 
     room = Room()
     room.add_frequencies(range(100,120))
     room.add_fib_source([40,20,2], power=.1)
-    room.add_spherical_recs(pts, radius=.3)
 
-    m1 = Material()
-    m1.absorption = {fk: .2 for fk in room.freq.values()}
-    room.add_room_surfaces(srfs, m1, True)
-
-    m2 = Material()
-    m2.absorption = {fk: .7 for fk in room.freq.values()}
-    room.add_room_surfaces(srf_, m2, True)
-
-    for srf in room.surfaces:
-        rs.AddTextDot(room.surfaces[srf]['material'].absorption[110], srf)
+    # room.add_spherical_recs(pts, radius=.3)
+    #
+    # m1 = Material()
+    # m1.absorption = {fk: .2 for fk in room.freq.values()}
+    # room.add_room_surfaces(srfs, m1, True)
+    #
+    # m2 = Material()
+    # m2.absorption = {fk: .7 for fk in room.freq.values()}
+    # room.add_room_surfaces(srf_, m2, True)
+    #
+    # print room.summary()
+    # # fp = '/Users/time/Desktop/deleteme.json'
+    # # room.to_json(fp)
+    # # room_ = Room.from_json(fp)

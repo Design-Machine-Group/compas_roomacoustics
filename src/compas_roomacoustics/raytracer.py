@@ -17,7 +17,8 @@ def shoot_rays(room):
         The room object to be analyzed.
 
     """
-    #TODO: Figure out if it is possible to cut ray one reflection short
+    #TODO: Figure out if it is possible to cut ray one reflection short.
+    #TODO: sort the rays dict better, easier to serialise. One or two deep, constant depth.
 
     init_rays = room.source['init_rays']
     ref_srf = [room.surfaces[gk]['guid'] for gk in room.surfaces]
@@ -99,7 +100,7 @@ if __name__ == '__main__':
     room.add_room_surfaces(srfs, m1, True)
 
     m2 = Material()
-    m2.absorption = {fk: .99 for fk in room.freq.values()}
+    m2.absorption = {fk: .6 for fk in room.freq.values()}
     room.add_room_surfaces(srf_, m2, True)
 
     rs.AddTextDot('s', room.source['xyz'])
