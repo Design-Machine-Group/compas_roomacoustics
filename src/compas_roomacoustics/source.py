@@ -18,7 +18,7 @@ Source summary
 
 
 class Source(object):
-    #TODO: from_to
+
     def __init__(self, name):
         self.name = name
         self.type = None
