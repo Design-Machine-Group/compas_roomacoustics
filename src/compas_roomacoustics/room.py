@@ -1,11 +1,11 @@
 import json
 import math
 import rhinoscriptsyntax as rs
+
 from compas.utilities import geometric_key
 from compas.geometry import centroid_points
 
 from material import Material
-
 from source import FibSource
 
 
@@ -98,31 +98,33 @@ class Room(object):
             data['materials'][repr(key)] = self.materials[key].data
 
         return data
-    #
-    # @data.setter
-    # def data(self, data):
-    #     tol             = data.get('tol') or {}
-    #     num_rays        = data.get('num_rays') or {}
-    #     ctime           = data.get('ctime') or {}
-    #     min_power       = data.get('min_power') or {}
-    #     source          = data.get('source') or {}
-    #     receivers       = data.get('receivers') or {}
-    #     surfaces        = data.get('surfaces') or {}
-    #     rays            = data.get('rays') or {}
-    #     freq            = data.get('freq') or {}
-    #     materials       = data.get('materials' or {})
-    #
-    #     self.tol        = tol
-    #     self.num_rays   = num_rays
-    #     self.ctime      = ctime
-    #     self.min_power  = min_power
-    #
-    #     self.source.update(source)
-    #     self.receivers.update(receivers)
-    #     self.surfaces.update(surfaces)
-    #     self.rays.update(rays)
-    #     self.freq.update(freq)
-    #
+
+    @data.setter
+    def data(self, data):
+        tol             = data.get('tol') or {}
+        num_rays        = data.get('num_rays') or {}
+        ctime           = data.get('ctime') or {}
+        min_power       = data.get('min_power') or {}
+        source          = data.get('source') or {}
+        # receivers       = data.get('receivers') or {}
+        # surfaces        = data.get('surfaces') or {}
+        # rays            = data.get('rays') or {}
+        # freq            = data.get('freq') or {}
+        # materials       = data.get('materials' or {})
+        #
+        # self.tol        = tol
+        # self.num_rays   = num_rays
+        # self.ctime      = ctime
+        # self.min_power  = min_power
+        s = FibSource.from_data(data)
+        print s
+        s.data = sourcer
+        self.source = s
+        # self.receivers.update(receivers)
+        # self.surfaces.update(surfaces)
+        # self.rays.update(rays)
+        # self.freq.update(freq)
+
     def to_json(self, filepath):
         """Serialise the structured data representing the data structure to json.
 
@@ -134,32 +136,32 @@ class Room(object):
         """
         with open(filepath, 'w+') as fp:
             json.dump(self.data, fp)
-    #
-    # @classmethod
-    # def from_json(cls, filepath):
-    #     """Construct a room datastructure from structured data contained in a json file.
-    #
-    #     Parameters
-    #     ----------
-    #     filepath : str
-    #         The path to the json file.
-    #
-    #     Returns
-    #     -------
-    #     object
-    #         An object of the type of ``cls``.
-    #
-    #     Note
-    #     ----
-    #     This constructor method is meant to be used in conjuction with the
-    #     corresponding *to_json* method.
-    #
-    #     """
-    #     with open(filepath, 'r') as fp:
-    #         data = json.load(fp)
-    #     room = cls()
-    #     room.data = data
-    #     return room
+
+    @classmethod
+    def from_json(cls, filepath):
+        """Construct a room datastructure from structured data contained in a json file.
+
+        Parameters
+        ----------
+        filepath : str
+            The path to the json file.
+
+        Returns
+        -------
+        object
+            An object of the type of ``cls``.
+
+        Note
+        ----
+        This constructor method is meant to be used in conjuction with the
+        corresponding *to_json* method.
+
+        """
+        with open(filepath, 'r') as fp:
+            data = json.load(fp)
+        room = cls()
+        room.data = data
+        return room
 
 
     # ---------------------------
@@ -288,9 +290,8 @@ if __name__ == '__main__':
     room.add_room_surfaces(srf_, 'two', True)
 
 
-    #
     print room
-    # fp = '/Users/time/Desktop/deleteme.json'
-    # room.to_json(fp)
-    # room_ = Room.from_json(fp)
-    # print room.data['materials']
+    fp = '/Users/time/Desktop/deleteme.json'
+    room.to_json(fp)
+    room_ = Room.from_json(fp)
+    print room_

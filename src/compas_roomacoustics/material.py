@@ -1,5 +1,4 @@
 
-#TODO: from_to
 #TODO: summary
 
 class Material(object):

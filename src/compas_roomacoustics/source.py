@@ -23,7 +23,6 @@ class Source(object):
         self.name = name
         self.type = None
 
-
     def __str__(self):
         s = TPL.format(self.name,
                        self.type,
@@ -83,22 +82,61 @@ class FibSource(Source):
                 'directions'    : {},
                 'ray_power'     : {},
                 'ray_minpower'  : {}}
-
         for key in self.freq:
             data['freq'][repr(key)] = self.freq[key]
-
         for key in self.directions:
             data['directions'][repr(key)] = self.directions[key]
-
         for rkey in self.ray_power:
             data['ray_power'][repr(rkey)] = {repr(wkey): self.ray_power[rkey][wkey] for wkey in self.ray_power[rkey]}
-
         for rkey in self.ray_minpower:
             data['ray_minpower'][repr(rkey)] = {repr(wkey): self.ray_minpower[rkey][wkey] for wkey in self.ray_minpower[rkey]}
-
         return data
+
+    @classmethod
+    def from_data(cls, data):
+        """Construct a source from structured data.
+
+        Parameters
+        ----------
+        data : dict
+            The data dictionary.
+
+        Returns
+        -------
+        object
+            An object of the type of ``cls``.
+
+        Note
+        ----
+        This constructor method is meant to be used in conjuction with the
+        corresponding *to_data* method.
+
+        """
+        name = data['name']
+        xyz = data['xyz']
+        power = data['power']
+        num_rays = data['num_rays']
+        freq = data['freq']
+        min_power = data['min_power']
+        source = cls(name, xyz, power, num_rays, freq, min_power)
+        source.data = data
+        source.type = 'fibbonaci_uniform'
+        return source
+
+    @data.setter
+    def data(self, data):
+        self.name           = data.get('name') or {}
+        self.type           = data.get('type') or {}
+        self.xyz            = data.get('xyz') or {}
+        self.min_power      = data.get('min_power') or {}
+        self.num_rays       = data.get('num_rays') or {}
+        self.type           = data.get('type') or {}
 
 if __name__ == '__main__':
     freq = {i: f for i, f in enumerate(range(100, 120))}
-    s = FibSource('fib', xyz=[0,0,0], power=.1, num_rays=1000, freq=freq, min_power=.06)
+    # s = FibSource('fib', xyz=[0,0,0], power=.1, num_rays=1000, freq=freq, min_power=.06)
+    # print s
+    dta = {'name': 'ok', 'xyz': [0,0,0], 'power': .1,
+           'num_rays':1000, 'freq':freq, 'min_power':.01}
+    s = FibSource.from_data(dta)
     print s
