@@ -92,6 +92,15 @@ class FibSource(Source):
             data['ray_minpower'][repr(rkey)] = {repr(wkey): self.ray_minpower[rkey][wkey] for wkey in self.ray_minpower[rkey]}
         return data
 
+    @data.setter
+    def data(self, data):
+        self.name           = data.get('name') or {}
+        self.type           = data.get('type') or {}
+        self.xyz            = data.get('xyz') or {}
+        self.min_power      = data.get('min_power') or {}
+        self.num_rays       = data.get('num_rays') or {}
+        self.type           = data.get('type') or {}
+
     @classmethod
     def from_data(cls, data):
         """Construct a source from structured data.
@@ -122,15 +131,6 @@ class FibSource(Source):
         source.data = data
         source.type = 'fibbonaci_uniform'
         return source
-
-    @data.setter
-    def data(self, data):
-        self.name           = data.get('name') or {}
-        self.type           = data.get('type') or {}
-        self.xyz            = data.get('xyz') or {}
-        self.min_power      = data.get('min_power') or {}
-        self.num_rays       = data.get('num_rays') or {}
-        self.type           = data.get('type') or {}
 
 if __name__ == '__main__':
     freq = {i: f for i, f in enumerate(range(100, 120))}
