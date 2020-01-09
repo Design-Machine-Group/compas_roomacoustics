@@ -19,6 +19,7 @@ def shoot_rays(room):
     """
     # TODO: Figure out if it is possible to cut ray one reflection short.
     # TODO: how to get rid of deepcopy? it is super slow.
+    # TODO: should propably use some generators, is that possible?
 
     directions = room.source.directions
     ref_srf = [room.surfaces[gk]['guid'] for gk in room.surfaces]
@@ -28,7 +29,7 @@ def shoot_rays(room):
     room.ray_lengths = {dk: {} for dk in directions}
     room.ray_powers = {dk: {} for dk in directions}
     room.ray_lines = {dk: {} for dk in directions}
-    
+
     for dk in directions:
         dir         = directions[dk]
         src_        = room.source.xyz
@@ -61,6 +62,8 @@ def shoot_rays(room):
 
 
 if __name__ == '__main__':
+    import os
+    import compas_roomacoustics
     import room
     reload(room)
     from room import Room
@@ -84,7 +87,7 @@ if __name__ == '__main__':
     room = Room()
     room.num_rays = 100
     room.add_frequencies(range(100,120))
-    srcpt = rs.PointCoordinates(rs.ObjectsByLayer('source')[0])
+    srcpt = list(rs.PointCoordinates(rs.ObjectsByLayer('source')[0]))
     room.add_fib_source(srcpt, power=.1)
 
     room.add_spherical_recs(pts, radius=.3)
@@ -99,7 +102,9 @@ if __name__ == '__main__':
     room.materials['mat2'] = m2
     room.add_room_surfaces(srf_, 'mat2', True)
 
-    print room
+    # print room
 
     shoot_rays(room)
-    visualize_rays(room, keys= None, ref_order=None, dot=None)
+    visualize_rays(room, keys= [50], ref_order=1, dot='key')
+    fp = os.path.join(compas_roomacoustics.TEMP, 'deleteme.json')
+    room.to_json(fp)

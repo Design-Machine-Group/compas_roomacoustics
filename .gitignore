@@ -1,0 +1,4 @@
+*.pyc
+*.3dmbak
+temp/**
+!temp/PLACEHOLDER

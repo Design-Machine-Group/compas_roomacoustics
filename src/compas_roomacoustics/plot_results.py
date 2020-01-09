@@ -1,12 +1,13 @@
 import rhinoscriptsyntax as rs
 
 def visualize_rays(room, keys=None, ref_order=None, layer='Default', dot=None):
+
     rs.CurrentLayer(layer)
     if not keys:
         keys = room.ray_lines.keys()
     for rk in keys:
         if ref_order:
-            ref_k = ref_order - 1
+            ref_k = ref_order
             if ref_k in room.ray_lines[rk]:
                 u, v = room.ray_lines[rk][ref_k]
                 line = rs.AddLine(u, v)
@@ -21,3 +22,5 @@ def visualize_rays(room, keys=None, ref_order=None, layer='Default', dot=None):
                 if dot == 't':
                     t = room.ray_times[rk][lk]
                     rs.AddTextDot(str(t), rs.CurveMidPoint(line))
+                if dot == 'key':
+                    rs.AddTextDot(str(lk), rs.CurveMidPoint(line))
