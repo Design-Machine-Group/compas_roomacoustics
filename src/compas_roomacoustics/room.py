@@ -33,11 +33,9 @@ class Room(object):
     ----------
     ...
     """
-    # TODO: data setting and updating
-    # TODO: from/to json
     # TODO: volume from is_boundary property
     # TODO sabine RT
-    # TODO: fix the serialising problem
+    # TODO: add rays and others to data, json
 
     def __init__(self):
         self.name           = 'Acoustic_Room'
@@ -259,12 +257,15 @@ class Room(object):
                                  'is_boundary': is_boundary,
                                  'srf_pts': rs.SurfacePoints(srf)}
 
+    def add_material(self, name, absorption):
+        m = Material(name)
+        m.absorption = absorption
+        self.materials[name] = m
+
 
 if __name__ == '__main__':
 
-    import material
-    reload(material)
-    from material import Material
+
 
     for i in range(50): print ''
     rs.CurrentLayer('Default')
@@ -280,18 +281,17 @@ if __name__ == '__main__':
 
     room.add_spherical_recs(pts, radius=.3)
 
-    m1 = Material('mat1')
-    m1.absorption = {fk: .2 for fk in room.freq.values()}
-    room.add_room_surfaces(srfs, m1, True)
+    absorption= {fk: .2 for fk in room.freq.values()}
+    room.add_material('mat1', absorption)
+    room.add_room_surfaces(srfs, 'mat1', True)
 
-    m2 = Material('mat2')
-    m2.absorption = {fk: .7 for fk in room.freq.values()}
-    room.materials['mat2'] = m2
-    room.add_room_surfaces(srf_, 'two', True)
+    absorption = {fk: .7 for fk in room.freq.values()}
+    room.add_material('mat2', absorption)
+    room.add_room_surfaces(srf_, 'mat2', True)
 
 
     print room
-    fp = '/Users/time/Desktop/deleteme.json'
-    room.to_json(fp)
-    room_ = Room.from_json(fp)
-    print room_
+    # fp = '/Users/time/Desktop/deleteme.json'
+    # room.to_json(fp)
+    # room_ = Room.from_json(fp)
+    # print room_

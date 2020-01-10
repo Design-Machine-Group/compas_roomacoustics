@@ -102,9 +102,9 @@ if __name__ == '__main__':
     room.materials['mat2'] = m2
     room.add_room_surfaces(srf_, 'mat2', True)
 
-    # print room
+    print room
 
     shoot_rays(room)
-    visualize_rays(room, keys= [50], ref_order=1, dot='key')
+    # visualize_rays(room, keys= [30], ref_order=None, dot='w')
     fp = os.path.join(compas_roomacoustics.TEMP, 'deleteme.json')
     room.to_json(fp)
