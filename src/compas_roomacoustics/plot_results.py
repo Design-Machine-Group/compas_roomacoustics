@@ -1,3 +1,4 @@
+from __future__ import print_function
 import rhinoscriptsyntax as rs
 
 def visualize_rays(room, keys=None, ref_order=None, layer='Default', dot=None):

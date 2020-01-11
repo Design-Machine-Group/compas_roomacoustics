@@ -1,3 +1,4 @@
+from __future__ import print_function
 import math
 
 TPL = """
@@ -147,7 +148,7 @@ class FibSource(Source):
         return source
 
 if __name__ == '__main__':
-    for i  in range(50): print ''
+    for i  in range(50): print('')
     freq = {i: f for i, f in enumerate(range(100, 120))}
     # s = FibSource('fib', xyz=[0,0,0], power=.1, num_rays=1000, freq=freq, min_power=.06)
     # print s

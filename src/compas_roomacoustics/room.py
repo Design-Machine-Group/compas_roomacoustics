@@ -1,6 +1,8 @@
+from __future__ import print_function
 import json
 import math
-import rhinoscriptsyntax as rs
+from imp import reload
+# import rhinoscriptsyntax as rs
 
 from compas.utilities import geometric_key
 from compas.geometry import centroid_points
@@ -48,6 +50,7 @@ class Room(object):
         self.num_rays       = 1000 # number of rays used in analysis
         self.ctime          = 1000. # cuttoff time in miliseconds
         self.min_power      = .03 # minimum percentage of power in rays
+        self.dt             = 3  # size of time interval for IR in miliseconds
 
         self.source         = {} # dict
         self.receivers      = {} # dict
@@ -84,6 +87,7 @@ class Room(object):
                 'min_power'     : self.min_power,
                 'source'        : self.source.data,
                 'surfaces'      : self.surfaces,
+                'dt'            : self.dt,
                 'receivers'     : {},
                 'ray_times'     : {},
                 'ray_lengths'   : {},
@@ -125,11 +129,13 @@ class Room(object):
         ray_lines       = data.get('ray_lines') or {}
         freq            = data.get('freq') or {}
         materials       = data.get('materials' or {})
+        dt              = data.get('dt' or {})
 
         self.tol        = tol
         self.num_rays   = num_rays
         self.ctime      = ctime
         self.min_power  = min_power
+        self.dt         = dt
 
         self.source = FibSource.from_data(source)
         self.surfaces = surfaces
@@ -256,7 +262,7 @@ class Room(object):
             gk = geometric_key(pt, self.tol)
             self.receivers[gk] = {'radius': radius,
                                   'xyz': list(pt),
-                                  'v':(4./3.) * math.pi * radius ** 3}
+                                  'volume':(4./3.) * math.pi * radius ** 3}
 
     def add_room_surfaces(self, srfs, material, is_boundary=False):
         """Adds sound reflectinc surfaces to the model.
@@ -295,10 +301,7 @@ class Room(object):
 
 
 if __name__ == '__main__':
-
-
-
-    for i in range(50): print ''
+    for i in range(50): print('')
     rs.CurrentLayer('Default')
     rs.DeleteObjects(rs.ObjectsByLayer('Default'))
 
@@ -320,9 +323,8 @@ if __name__ == '__main__':
     room.add_material('mat2', absorption)
     room.add_room_surfaces(srf_, 'mat2', True)
 
-
-    print room
+    print(room)
     fp = '/Users/time/Desktop/deleteme.json'
     room.to_json(fp)
     room_ = Room.from_json(fp)
-    print room_
+    print(room_)

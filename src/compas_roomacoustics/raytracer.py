@@ -1,3 +1,4 @@
+from __future__ import print_function
 import rhinoscriptsyntax as rs
 import json
 
@@ -63,7 +64,7 @@ def shoot_rays(room):
 
 if __name__ == '__main__':
     import os
-    import compas_roomacoustics
+    import compas_roomacoustics as cra
     import room
     reload(room)
     from room import Room
@@ -76,7 +77,7 @@ if __name__ == '__main__':
     reload(plot_results)
     from plot_results import visualize_rays
 
-    for i in range(50): print ''
+    for i in range(50): print('')
     rs.CurrentLayer('Default')
     rs.DeleteObjects(rs.ObjectsByLayer('Default'))
     rs.DeleteObjects(rs.ObjectsByLayer('r2'))
@@ -86,7 +87,7 @@ if __name__ == '__main__':
     srf_ = rs.ObjectsByLayer('back_srf')
 
     r = Room()
-    r.num_rays = 1000
+    r.num_rays = 5000
     r.add_frequencies(range(100,120))
     srcpt = list(rs.PointCoordinates(rs.ObjectsByLayer('source')[0]))
     r.add_fib_source(srcpt, power=.1)
@@ -102,8 +103,8 @@ if __name__ == '__main__':
     r.add_room_surfaces(srf_, 'mat2', True)
 
     shoot_rays(r)
-    visualize_rays(r, keys= None, ref_order=None, layer='Default', dot=None)
-    fp = os.path.join(compas_roomacoustics.TEMP, 'testing.json')
+    # visualize_rays(r, keys= None, ref_order=None, layer='Default', dot=None)
+    fp = os.path.join(cra.TEMP, 'testing.json')
     r.to_json(fp)
     r2 = Room.from_json(fp)
-    visualize_rays(r, keys= None, ref_order=None, layer='r2', dot=None)
+    # visualize_rays(r, keys= None, ref_order=None, layer='r2', dot=None)
