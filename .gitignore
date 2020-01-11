@@ -1,4 +1,5 @@
 *.pyc
 *.3dmbak
+*.DS_Store
 temp/**
 !temp/PLACEHOLDER
