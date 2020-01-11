@@ -5,8 +5,14 @@ import rhinoscriptsyntax as rs
 from compas.utilities import geometric_key
 from compas.geometry import centroid_points
 
+import material
+reload(material)
 from material import Material
+
+import source
+reload(source)
 from source import FibSource
+
 
 
 TPL = """
@@ -35,7 +41,6 @@ class Room(object):
     """
     # TODO: volume from is_boundary property
     # TODO sabine RT
-    # TODO: add rays and others to data, json
 
     def __init__(self):
         self.name           = 'Acoustic_Room'
@@ -68,7 +73,6 @@ class Room(object):
                        self.ctime)
         return s
 
-
     @property
     def data(self):
         """dict : A data dict representing the room data structure for serialisation.
@@ -79,9 +83,12 @@ class Room(object):
                 'ctime'         : self.ctime,
                 'min_power'     : self.min_power,
                 'source'        : self.source.data,
+                'surfaces'      : self.surfaces,
                 'receivers'     : {},
-                # 'surfaces'      : self.surfaces,
-                # 'rays'          : self.rays,
+                'ray_times'     : {},
+                'ray_lengths'   : {},
+                'ray_powers'    : {},
+                'ray_lines'     : {},
                 'freq'          : {},
                 'materials'     : {}
                 }
@@ -95,6 +102,12 @@ class Room(object):
         for key in self.materials:
             data['materials'][repr(key)] = self.materials[key].data
 
+        for rk in self.ray_times:
+            data['ray_times'][repr(rk)] = {repr(k): self.ray_times[rk][k] for k in self.ray_times[rk]}
+            data['ray_lengths'][repr(rk)] = {repr(k): self.ray_lengths[rk][k] for k in self.ray_lengths[rk]}
+            data['ray_powers'][repr(rk)] = {repr(k): self.ray_powers[rk][k] for k in self.ray_powers[rk]}
+            data['ray_lines'][repr(rk)] = {repr(k): self.ray_lines[rk][k] for k in self.ray_lines[rk]}
+
         return data
 
     @data.setter
@@ -104,24 +117,44 @@ class Room(object):
         ctime           = data.get('ctime') or {}
         min_power       = data.get('min_power') or {}
         source          = data.get('source') or {}
-        # receivers       = data.get('receivers') or {}
-        # surfaces        = data.get('surfaces') or {}
-        # rays            = data.get('rays') or {}
-        # freq            = data.get('freq') or {}
-        # materials       = data.get('materials' or {})
-        #
-        # self.tol        = tol
-        # self.num_rays   = num_rays
-        # self.ctime      = ctime
-        # self.min_power  = min_power
-        s = FibSource.from_data(data)
-        print s
-        s.data = sourcer
-        self.source = s
-        # self.receivers.update(receivers)
-        # self.surfaces.update(surfaces)
-        # self.rays.update(rays)
-        # self.freq.update(freq)
+        receivers       = data.get('receivers') or {}
+        surfaces        = data.get('surfaces') or {}
+        ray_times       = data.get('ray_times') or {}
+        ray_lengths     = data.get('ray_lengths') or {}
+        ray_powers      = data.get('ray_powers') or {}
+        ray_lines       = data.get('ray_lines') or {}
+        freq            = data.get('freq') or {}
+        materials       = data.get('materials' or {})
+
+        self.tol        = tol
+        self.num_rays   = num_rays
+        self.ctime      = ctime
+        self.min_power  = min_power
+
+        self.source = FibSource.from_data(source)
+        self.surfaces = surfaces
+
+        self.materials = {}
+        for mkey in materials:
+            self.materials[repr(mkey)] = Material.from_data(materials[mkey])
+
+        self.freq = {}
+        for fkey in freq:
+            self.freq[repr(fkey)] = freq[fkey]
+
+        self.receivers = {}
+        for rkey in receivers:
+            self.receivers[repr(rkey)] = receivers[rkey]
+
+        self.ray_times = {}
+        self.ray_lengths = {}
+        self.ray_powers = {}
+        self.ray_lines = {}
+        for rk in ray_times:
+            self.ray_times[repr(rk)] = {repr(k): ray_times[rk][k] for k in ray_times[rk]}
+            self.ray_lengths[repr(rk)] = {repr(k): ray_lengths[rk][k] for k in ray_lengths[rk]}
+            self.ray_powers[repr(rk)] = {repr(k): ray_powers[rk][k] for k in ray_powers[rk]}
+            self.ray_lines[repr(rk)] = {repr(k): ray_lines[rk][k] for k in ray_lines[rk]}
 
     def to_json(self, filepath):
         """Serialise the structured data representing the data structure to json.
@@ -161,17 +194,15 @@ class Room(object):
         room.data = data
         return room
 
-
     # ---------------------------
     # Room acoustic calcultations
     # ---------------------------
 
-    # def compute_room_volume(self):
-    #     pass
-    #
-    # def compute_sabine_rt(self):
-    #     pass
+    def compute_room_volume(self):
+        pass
 
+    def compute_sabine_rt(self):
+        pass
 
     # ---------------------------
     # Room attributes creation
@@ -250,16 +281,16 @@ class Room(object):
         #     material = material.name
 
         for srf in srfs:
-            centroid = centroid_points(rs.SurfacePoints(srf))
+            srf_pts = [list(pt) for pt in rs.SurfacePoints(srf)]
+            centroid = centroid_points(srf_pts)
             gk = geometric_key(centroid)
-            self.surfaces[gk] = {'guid': srf,
+            self.surfaces[gk] = {'guid': str(srf),
                                  'material': material,
                                  'is_boundary': is_boundary,
-                                 'srf_pts': rs.SurfacePoints(srf)}
+                                 'srf_pts': srf_pts}
 
     def add_material(self, name, absorption):
-        m = Material(name)
-        m.absorption = absorption
+        m = Material(name, absorption)
         self.materials[name] = m
 
 
@@ -291,7 +322,7 @@ if __name__ == '__main__':
 
 
     print room
-    # fp = '/Users/time/Desktop/deleteme.json'
-    # room.to_json(fp)
-    # room_ = Room.from_json(fp)
-    # print room_
+    fp = '/Users/time/Desktop/deleteme.json'
+    room.to_json(fp)
+    room_ = Room.from_json(fp)
+    print room_

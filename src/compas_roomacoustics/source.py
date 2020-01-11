@@ -81,15 +81,24 @@ class FibSource(Source):
                 'freq'          : {},
                 'directions'    : {},
                 'ray_power'     : {},
-                'ray_minpower'  : {}}
+                'ray_minpower'  : {},
+                'power'         : {}}
+
         for key in self.freq:
             data['freq'][repr(key)] = self.freq[key]
+
         for key in self.directions:
             data['directions'][repr(key)] = self.directions[key]
+
+        for wkey in self.power:
+            data['power'][repr(wkey)] = self.power[wkey]
+
         for rkey in self.ray_power:
             data['ray_power'][repr(rkey)] = {repr(wkey): self.ray_power[rkey][wkey] for wkey in self.ray_power[rkey]}
+
         for rkey in self.ray_minpower:
             data['ray_minpower'][repr(rkey)] = {repr(wkey): self.ray_minpower[rkey][wkey] for wkey in self.ray_minpower[rkey]}
+
         return data
 
     @data.setter
@@ -100,6 +109,11 @@ class FibSource(Source):
         self.min_power      = data.get('min_power') or {}
         self.num_rays       = data.get('num_rays') or {}
         self.type           = data.get('type') or {}
+
+        if type(data['power']) == float:
+            self.power = {wk:data['power'] for wk in self.freq.values()}
+        else:
+            self.power = data['power']
 
     @classmethod
     def from_data(cls, data):
@@ -133,10 +147,11 @@ class FibSource(Source):
         return source
 
 if __name__ == '__main__':
+    for i  in range(50): print ''
     freq = {i: f for i, f in enumerate(range(100, 120))}
     # s = FibSource('fib', xyz=[0,0,0], power=.1, num_rays=1000, freq=freq, min_power=.06)
     # print s
     dta = {'name': 'ok', 'xyz': [0,0,0], 'power': .1,
            'num_rays':1000, 'freq':freq, 'min_power':.01}
     s = FibSource.from_data(dta)
-    print s
+    # print s

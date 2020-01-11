@@ -44,7 +44,7 @@ def shoot_rays(room):
             srf = rs.PointClosestObject(ray[0], ref_srf)[0]
             mp_list = []
             if i > 0:
-                sk = ref_map[srf]
+                sk = ref_map[str(srf)]
                 abs = room.materials[room.surfaces[sk]['material']].absorption
                 for wk in w:
                     w[wk] *= (1 - abs[wk])
@@ -79,32 +79,31 @@ if __name__ == '__main__':
     for i in range(50): print ''
     rs.CurrentLayer('Default')
     rs.DeleteObjects(rs.ObjectsByLayer('Default'))
+    rs.DeleteObjects(rs.ObjectsByLayer('r2'))
 
     pts = [rs.PointCoordinates(pt) for pt in rs.ObjectsByLayer('receivers')]
     srfs = rs.ObjectsByLayer('reflectors')
     srf_ = rs.ObjectsByLayer('back_srf')
 
-    room = Room()
-    room.num_rays = 100
-    room.add_frequencies(range(100,120))
+    r = Room()
+    r.num_rays = 1000
+    r.add_frequencies(range(100,120))
     srcpt = list(rs.PointCoordinates(rs.ObjectsByLayer('source')[0]))
-    room.add_fib_source(srcpt, power=.1)
+    r.add_fib_source(srcpt, power=.1)
 
-    room.add_spherical_recs(pts, radius=.3)
+    r.add_spherical_recs(pts, radius=.3)
 
-    m1 = Material('mat1')
-    m1.absorption = {fk: .2 for fk in room.freq.values()}
-    room.materials['mat1'] = m1
-    room.add_room_surfaces(srfs, 'mat1', True)
+    absorption= {fk: .2 for fk in r.freq.values()}
+    r.add_material('mat1', absorption)
+    r.add_room_surfaces(srfs, 'mat1', True)
 
-    m2 = Material('mat2')
-    m2.absorption = {fk: .7 for fk in room.freq.values()}
-    room.materials['mat2'] = m2
-    room.add_room_surfaces(srf_, 'mat2', True)
+    absorption = {fk: .7 for fk in r.freq.values()}
+    r.add_material('mat2', absorption)
+    r.add_room_surfaces(srf_, 'mat2', True)
 
-    print room
-
-    shoot_rays(room)
-    # visualize_rays(room, keys= [30], ref_order=None, dot='w')
-    fp = os.path.join(compas_roomacoustics.TEMP, 'deleteme.json')
-    room.to_json(fp)
+    shoot_rays(r)
+    visualize_rays(r, keys= None, ref_order=None, layer='Default', dot=None)
+    fp = os.path.join(compas_roomacoustics.TEMP, 'testing.json')
+    r.to_json(fp)
+    r2 = Room.from_json(fp)
+    visualize_rays(r, keys= None, ref_order=None, layer='r2', dot=None)
