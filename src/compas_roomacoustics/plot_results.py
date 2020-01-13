@@ -25,3 +25,6 @@ def visualize_rays(room, keys=None, ref_order=None, layer='Default', dot=None):
                     rs.AddTextDot(str(t), rs.CurveMidPoint(line))
                 if dot == 'key':
                     rs.AddTextDot(str(lk), rs.CurveMidPoint(line))
+
+def plot_spl(spl):
+    pass

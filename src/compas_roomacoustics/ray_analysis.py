@@ -23,7 +23,7 @@ def make_histogram(room):
         for frek in room.freq:
             histogram[reck][frek] ={}
 
-    #  TODO: do this in a dict comprehensions
+    #  TODO: this should be done via dict comprehension
     intensity = {}
     for reck in room.receivers:
         intensity[reck] = {}
@@ -34,7 +34,7 @@ def make_histogram(room):
         time = 0
         for refk in room.ray_lines[rayk]:
             line    = room.ray_lines[rayk][refk]
-            powers  = room.ray_powers[rayk][refk]
+            # powers  = room.ray_powers[rayk][refk]
             time    += room.ray_times[rayk][refk]
             for reck in room.receivers:
                 rec_xyz = room.receivers[reck]['xyz']
@@ -42,8 +42,12 @@ def make_histogram(room):
                 rec_v   = room.receivers[reck]['volume']
                 is_mic, d = is_line_in_shere(line, rec_xyz, rec_r)
                 if is_mic:
-                    for frek in room.freq:
-                        w = room.ray_powers[rayk][refk][str(room.freq[frek])]
+                    for frek in room.ray_powers[rayk][refk]:
+                        print(type(frek))
+                        print(type(room.freq.keys()[0]))
+                        print(type(room.ray_powers[rayk][refk].keys()[0]))
+                        # TODO: There is something not great with freq keys and their serialization
+                        w = room.ray_powers[rayk][refk][room.freq[frek]]
                         d_ = distance_point_point(closest_point_on_line(rec_xyz, line), rec_xyz)
                         t = int((d_ / 343.0) * 1000)
                         time_ = time + t

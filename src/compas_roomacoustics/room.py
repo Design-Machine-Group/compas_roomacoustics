@@ -2,7 +2,7 @@ from __future__ import print_function
 import json
 import math
 from imp import reload
-# import rhinoscriptsyntax as rs
+import rhinoscriptsyntax as rs
 
 from compas.utilities import geometric_key
 from compas.geometry import centroid_points

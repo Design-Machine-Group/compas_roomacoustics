@@ -80,14 +80,13 @@ if __name__ == '__main__':
     for i in range(50): print('')
     rs.CurrentLayer('Default')
     rs.DeleteObjects(rs.ObjectsByLayer('Default'))
-    rs.DeleteObjects(rs.ObjectsByLayer('r2'))
 
     pts = [rs.PointCoordinates(pt) for pt in rs.ObjectsByLayer('receivers')]
     srfs = rs.ObjectsByLayer('reflectors')
     srf_ = rs.ObjectsByLayer('back_srf')
 
     r = Room()
-    r.num_rays = 5000
+    r.num_rays = 100
     r.add_frequencies(range(100,120))
     srcpt = list(rs.PointCoordinates(rs.ObjectsByLayer('source')[0]))
     r.add_fib_source(srcpt, power=.1)
@@ -106,5 +105,3 @@ if __name__ == '__main__':
     # visualize_rays(r, keys= None, ref_order=None, layer='Default', dot=None)
     fp = os.path.join(cra.TEMP, 'testing.json')
     r.to_json(fp)
-    r2 = Room.from_json(fp)
-    # visualize_rays(r, keys= None, ref_order=None, layer='r2', dot=None)
