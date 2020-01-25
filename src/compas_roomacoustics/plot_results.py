@@ -1,6 +1,8 @@
 from __future__ import print_function
 import rhinoscriptsyntax as rs
 
+from compas.utilities.colors import i_to_rgb
+
 def visualize_rays(room, keys=None, ref_order=None, layer='Default', dot=None):
 
     rs.CurrentLayer(layer)
@@ -26,5 +28,16 @@ def visualize_rays(room, keys=None, ref_order=None, layer='Default', dot=None):
                 if dot == 'key':
                     rs.AddTextDot(str(lk), rs.CurveMidPoint(line))
 
-def plot_spl(spl):
-    pass
+def plot_spl(room, spl, frequency):
+    spls = [spl[rec][frequency] for rec in spl]
+    minspl = min(spls)
+    maxspl = max(spls)
+    for rec in spl:
+        value = spl[rec][frequency]
+        pt = room.receivers[rec]['xyz']
+        sph = rs.AddSphere(pt, .2)
+        rs.ObjectName(sph, str(value))
+        i = (((value - minspl) * (1 - 0)) / (maxspl - minspl)) + 0
+        color = i_to_rgb(i)
+        # print(minspl, maxspl, value, i, color)
+        rs.ObjectColor(sph, color)

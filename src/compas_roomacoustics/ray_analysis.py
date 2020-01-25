@@ -21,20 +21,19 @@ def make_histogram(room):
     for reck in room.receivers:
         histogram[reck] = {}
         for frek in room.freq:
-            histogram[reck][frek] ={}
+            histogram[reck][room.freq[frek]] ={}
 
     #  TODO: this should be done via dict comprehension
     intensity = {}
     for reck in room.receivers:
         intensity[reck] = {}
         for frek in room.freq:
-            intensity[reck][frek] ={}
+            intensity[reck][room.freq[frek]] ={}
 
     for rayk in room.ray_lines:
         time = 0
         for refk in room.ray_lines[rayk]:
             line    = room.ray_lines[rayk][refk]
-            # powers  = room.ray_powers[rayk][refk]
             time    += room.ray_times[rayk][refk]
             for reck in room.receivers:
                 rec_xyz = room.receivers[reck]['xyz']
@@ -43,11 +42,8 @@ def make_histogram(room):
                 is_mic, d = is_line_in_shere(line, rec_xyz, rec_r)
                 if is_mic:
                     for frek in room.ray_powers[rayk][refk]:
-                        print(type(frek))
-                        print(type(room.freq.keys()[0]))
-                        print(type(room.ray_powers[rayk][refk].keys()[0]))
                         # TODO: There is something not great with freq keys and their serialization
-                        w = room.ray_powers[rayk][refk][room.freq[frek]]
+                        w = room.ray_powers[rayk][refk][frek]
                         d_ = distance_point_point(closest_point_on_line(rec_xyz, line), rec_xyz)
                         t = int((d_ / 343.0) * 1000)
                         time_ = time + t
@@ -63,12 +59,14 @@ def make_histogram(room):
 def spl_from_intensity(intensity):
     spl = {}
     for rec in intensity:
-        ilist = [intensity[rec][p] for p in intensity[rec]]
-        i = sum(ilist)
-        if i == 0:
-            spl[rec] = 0
-        else:
-            spl[rec] = 120 + 10 * log10(i)
+        spl[rec] = {}
+        for frek in intensity[rec]: 
+            ilist = [intensity[rec][frek][t] for t in intensity[rec][frek]]
+            i = sum(ilist)
+            if i == 0:
+                spl[rec][frek] = 0
+            else:
+                spl[rec][frek] = 120 + 10 * log10(i)
     return spl
 
 def is_line_in_shere(line, cpt, r):
