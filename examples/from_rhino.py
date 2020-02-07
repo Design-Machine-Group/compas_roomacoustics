@@ -34,8 +34,8 @@ srfs = rs.ObjectsByLayer('reflectors')
 srf_ = rs.ObjectsByLayer('back_srf')
 
 r = Room()
-r.num_rays = 10000
-r.add_frequencies(range(100,102))
+r.num_rays = 100
+r.add_frequencies(range(100,500, 5))
 srcpt = list(rs.PointCoordinates(rs.ObjectsByLayer('source')[0]))
 r.add_fib_source(srcpt, power=.1)
 
@@ -50,7 +50,7 @@ r.add_material('mat2', absorption)
 r.add_room_surfaces(srf_, 'mat2', True)
 
 shoot_rays(r)
-# visualize_rays(r, keys= None, ref_order=None, layer='Default', dot=None)
+visualize_rays(r, keys= None, ref_order=None, layer='Default', dot=None)
 
 histo, intsty = make_histogram(r)
 spl = spl_from_intensity(intsty)
