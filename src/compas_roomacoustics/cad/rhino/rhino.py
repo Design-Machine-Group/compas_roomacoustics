@@ -8,52 +8,80 @@ __copyright__  = 'Copyright 2020, Design Machine Group - University of Washingto
 __license__    = 'MIT License'
 __email__      = 'tmendeze@uw.edu'
 
-from compas_roomacoustics.room import Room
+for i in range(50): print()
+
+from compas_roomacoustics.datastructures import Room
+
 try:
     import rhinoscriptsyntax as rs
 except:
     pass
 
 
-def room_from_rhino(frequencies, srf_layers, srf_mat, src_layer, mic_layer):
-
-    recs = [rs.PointCoordinates(pt) for pt in rs.ObjectsByLayer(src_layer)]
+def room_from_rhino(frequencies, srf_dict, src_layer, src_power, mic_layer):
     
-    srfs = rs.ObjectsByLayer('reflectors')
-    
-    srf_ = rs.ObjectsByLayer('back_srf')
-
     room = Room()
     room.add_frequencies(frequencies)
 
+    # add mics -------------------------------------------------------------
+    mics = [list(rs.PointCoordinates(pt)) for pt in rs.ObjectsByLayer(mic_layer)]
+    room.add_spherical_recs(mics, radius=.3)
 
-    room.add_fib_source([40, 20, 2], power=.1)
+    # add source -----------------------------------------------------------
+    sxyz = list(rs.PointCoordinates(rs.ObjectsByLayer(src_layer)[0]))
+    room.add_fib_source(sxyz, power=src_power)
 
-    room.add_spherical_recs(recs, radius=.3)
+    # add surfaces ---------------------------------------------------------
 
-    absorption= {fk: .2 for fk in room.freq.values()}
-    room.add_material('mat1', absorption)
-    room.add_room_surfaces(srfs, 'mat1', True)
-
-    absorption = {fk: .7 for fk in room.freq.values()}
-    room.add_material('mat2', absorption)
-    room.add_room_surfaces(srf_, 'mat2', True)
+    for key in srfs_dict:
+        layer = srf_dict[key]['layer']
+        mat = srf_dict[key]['material']
+        is_boundary = srfs_dict[key]['is_boundary']
+        guids = rs.ObjectsByLayer(layer)
+        srf_pts = []
+        for guid in guids:
+            pts = [[pt.X, pt.Y, pt.Z] for pt in rs.SurfacePoints(guid)]
+            srf_pts.append(pts)
+        room.add_material(layer, mat['abs'], mat['sct'], mat['trn'])
+        room.add_room_surfaces(srf_pts, layer, is_boundary)
 
     return room
 
 if __name__ == '__main__':
-    for i in range(50): print('')
-    rs.CurrentLayer('Default')
-    rs.DeleteObjects(rs.ObjectsByLayer('Default'))
-    frequencies = range(100, 150, 3)
+
+    
+
+    import os
+
+    path = 'c:\\users\\tmendeze\\documents\\uw_code\\compas_roomacoustics\\temp'
+    filename = 'simple_box.json'
+    filepath = os.path.join(path, filename)
+
+
+    frequencies = [62, 125, 250, 500, 1000, 2000, 4000, 8000]
 
     srf_layers = ['walls', 'floor', 'ceiling']
 
-    abs= {fk: .2 for fk in room.freq.values()}
-    walls = {}
-    floor = {}
-    ceiling = {}
-    srf_mat = [walls, floor, ceiling]
+    sct = {fk: .2 for fk in frequencies}
+    trn = {fk: .0 for fk in frequencies}
+
+    abs_wall= {fk: .05 for fk in frequencies}
+    mwalls = {'abs': abs_wall, 'sct': sct, 'trn': trn}
+
+    abs_floor= {fk: .3 for fk in frequencies}
+    mfloor = {'abs': abs_floor, 'sct': sct, 'trn': trn}
+
+    abs_cei= {fk: .5 for fk in frequencies}
+    mceiling = {'abs': abs_cei, 'sct': sct, 'trn': trn}
+
+    walls = {'layer': 'walls', 'material': mwalls, 'is_boundary': True}
+    floor = {'layer': 'floor', 'material': mfloor, 'is_boundary': True}
+    ceiling = {'layer': 'ceiling', 'material': mceiling, 'is_boundary': True}
+    srfs_dict = {'walls': walls, 'floor': floor, 'ceiling': ceiling}
+
     src_layer = 'src'
+    src_power = .1
     mic_layer = 'mics'
-    room_from_rhino(frequencies, srf_layers, srf_mat, src_layer, mic_layer)
+    room = room_from_rhino(frequencies, srfs_dict, src_layer, src_power,  mic_layer)
+    room.to_json(filepath)
+    print(room)

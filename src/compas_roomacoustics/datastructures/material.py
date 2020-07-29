@@ -1,6 +1,8 @@
 from __future__ import print_function
 #TODO: summary
 
+__all__ = ['Material']
+
 class Material(object):
 
     def __init__(self, name, absorption, scattering, transparency):
@@ -22,6 +24,12 @@ class Material(object):
         for key in self.absorption:
             data['absorption'][repr(key)] = self.absorption[key]
 
+        for key in self.scatteting:
+            data['scatteting'][repr(key)] = self.scatteting[key]
+
+        for key in self.transparency:
+            data['transparency'][repr(key)] = self.transparency[key]
+
         return data
 
     @data.setter
@@ -34,6 +42,16 @@ class Material(object):
         self.absorption = {}
         for akey in absorption:
             self.absorption[repr(akey)] = absorption[akey]
+
+        scatteting  = data.get('scatteting') or {}
+        self.scatteting = {}
+        for akey in scatteting:
+            self.scatteting[repr(akey)] = scatteting[akey]
+
+        transparency  = data.get('transparency') or {}
+        self.transparency = {}
+        for akey in transparency:
+            self.transparency[repr(akey)] = transparency[akey]
 
     @classmethod
     def from_data(cls, data):
@@ -58,7 +76,7 @@ class Material(object):
         scatteting = data['scatteting']
         transparency = data['transparency']
         absorption = data['absorption']
-        material = cls(name, absorption)
+        material = cls(name, absorption, scatteting, transparency)
         return material
 
 

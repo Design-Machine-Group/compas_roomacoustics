@@ -1,18 +1,11 @@
 from __future__ import print_function
 import json
 import math
-from imp import reload
-import rhinoscriptsyntax as rs
 
 from compas.utilities import geometric_key
 from compas.geometry import centroid_points
 
-import material
-reload(material)
 from material import Material
-
-import source
-reload(source)
 from source import FibSource
 
 
@@ -43,6 +36,7 @@ class Room(object):
     """
     # TODO: volume from is_boundary property
     # TODO sabine RT
+    # TODO: Surface properties are needed, now storing all materials in each srf!!!
 
     def __init__(self):
         self.name           = 'Acoustic_Room'
@@ -286,17 +280,15 @@ class Room(object):
         #     room.materials[material.name] = material
         #     material = material.name
 
-        for srf in srfs:
-            srf_pts = [list(pt) for pt in rs.SurfacePoints(srf)]
+        for srf_pts in srfs:
             centroid = centroid_points(srf_pts)
             gk = geometric_key(centroid)
-            self.surfaces[gk] = {'guid': str(srf),
-                                 'material': material,
+            self.surfaces[gk] = {'material': material,
                                  'is_boundary': is_boundary,
                                  'srf_pts': srf_pts}
 
-    def add_material(self, name, absorption):
-        m = Material(name, absorption)
+    def add_material(self, name, absorption, scattering, transparency):
+        m = Material(name, absorption, scattering, transparency)
         self.materials[name] = m
 
 
