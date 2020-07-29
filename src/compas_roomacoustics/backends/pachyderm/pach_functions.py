@@ -19,7 +19,6 @@ def make_mic_map(mics):
     m = {geometric_key(mic): {'index':i, 'xyz': mic} for i, mic in enumerate(mics)}
     return m
 
-
 def pach_assign_material(guid, abs, sct, trn):
     abs = Array[int](abs)
     sct = Array[int](sct)

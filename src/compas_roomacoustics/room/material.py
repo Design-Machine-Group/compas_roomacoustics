@@ -3,11 +3,11 @@ from __future__ import print_function
 
 class Material(object):
 
-    def __init__(self, name, absorption):
+    def __init__(self, name, absorption, scattering, transparency):
         self.name = name
         self.absorption = absorption
-        self.scatteting = {}
-        self.transparency = {}
+        self.scatteting = scattering
+        self.transparency = transparency
 
     @property
     def data(self):

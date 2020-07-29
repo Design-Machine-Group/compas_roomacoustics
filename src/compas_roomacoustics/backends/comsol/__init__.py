@@ -8,6 +8,3 @@ __copyright__  = 'Copyright 2020, Design Machine Group - University of Washingto
 __license__    = 'MIT License'
 __email__      = 'tmendeze@uw.edu'
 
-from .room import *
-from .material import *
-from .source import *
