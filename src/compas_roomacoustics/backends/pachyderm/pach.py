@@ -1,6 +1,17 @@
-import math, re, time, clr, os, json
-import Rhino, scriptcontext
-import rhinoscriptsyntax as rs
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+
+__author__     = ['Tomas Mendez Echenagucia <tmendeze@uw.edu>']
+__copyright__  = 'Copyright 2020, Design Machine Group - University of Washington'
+__license__    = 'MIT License'
+__email__      = 'tmendeze@uw.edu'
+
+# import math, re, time, clr, os, json
+# import Rhino, scriptcontext
+
+import clr
 
 clr.AddReference("Pachyderm_Acoustic")
 clr.AddReference("Pachyderm_Acoustic_Universal")
@@ -13,43 +24,22 @@ import Pachyderm_Acoustic as pach
 import Pachyderm_Acoustic.Environment as env
 import Pachyderm_Acoustic.Utilities.RC_PachTools as pt
 import Pachyderm_Acoustic.Utilities.IR_Construction as ir
-import Pachyderm_Acoustic.Utilities.AcousticalMath as pm
+# import Pachyderm_Acoustic.Utilities.AcousticalMath as pm
 import Hare.Geometry.Point as hpt
-import wave,struct
+# import wave,struct
+
+from compas.utilities import geometric_key
+
+from compas_roomacoustics.backends.pachyderm import assign_materials_by_layer
+from compas_roomacoustics.backends.pachyderm import pach_sch_int
+from compas_roomacoustics.backends.pachyderm import pach_edt
+from compas_roomacoustics.backends.pachyderm import pach_t30
+from compas_roomacoustics.backends.pachyderm import pach_sti
+from compas_roomacoustics.backends.pachyderm import etcs_to_json
 
 
-def geometric_key(xyz, precision='3f'):
-    x, y, z = xyz
-    return '{0:.{3}},{1:.{3}},{2:.{3}}'.format(x, y, z, precision)
 
-def make_mic_map(mics):
-    m = {geometric_key(mic): {'index':i, 'xyz': mic} for i, mic in enumerate(mics)}
-    return m
-
-def pach_assign_material(guid, abs, sct, trn):
-    abs = Array[int](abs)
-    sct = Array[int](sct)
-    trn = Array[int](trn)
-    pt.Material_SetByObject(guid, abs, sct, trn)
-
-def etcs_to_json(filepath, etcs):
-    for mic in etcs:
-        for oct in etcs[mic]:
-            etcs[mic][oct] = list(etcs[mic][oct])
-
-    with open(filepath, 'w+') as fp:
-        json.dump(etcs, fp)
-
-def assign_materials_by_layer(lay_dict):
-    for lay in lay_dict:
-        srfs = rs.ObjectsByLayer(lay)
-        abs = lay_dict[lay]['abs']
-        sct = lay_dict[lay]['sct']
-        trn = lay_dict[lay]['trn']
-        for srf in srfs:
-            pach_assign_material(srf, abs, sct, trn)
-
-def pach_run(src, mics, num_rays=1000, max_duration=2000, image_order=2):
+def pach_run(src, mics, num_rays=1000, max_duration=2000, image_order=1):
 
     rec = NetList[hpt]()
     for mic in mics:
@@ -107,78 +97,29 @@ def pach_run(src, mics, num_rays=1000, max_duration=2000, image_order=2):
             etcs[gk][oct] = etc
     return etcs
 
-def pach_sch_int(etcs):
-    sch_int = {}
-    for rec in etcs:
-        sch_int[rec] = {}
-        for oct in etcs[rec]:
-            etc = Array[float](etcs[rec][oct])
-            sch = pm.Schroeder_Integral(etc)
-            sch_int[rec][oct] = sch
-    return sch_int
 
-def pach_edt(sch_int):
-    edt = {}
-    for rec in sch_int:
-        edt[rec] = {}
-        for oct in sch_int[rec]:
-            sch = sch_int[rec][oct]
-            edt[rec][oct] = pm.EarlyDecayTime(sch, 1000)
-    return edt
-    
-def pach_t30(sch_int):
-    t30 = {}
-    for rec in sch_int:
-        t30[rec] = {}
-        for oct in sch_int[rec]:
-            sch = sch_int[rec][oct]
-            t30[rec][oct] = pm.T_X(sch, 30, 1000)
-    return t30
-
-def pach_sti(etcs):
-    sti = {}
-    for rec in etcs:
-        sti[rec] = {}
-        etcs_arr = [Array[float](etcs[rec]) for oct in etcs[rec]]
-        etc = Array[Array[float]](etcs_arr)
-        rho_c = 342.2 * 1000.1
-        noise = [40.] * 8
-        noise = Array[float](noise)
-        samplefreq = 4
-        sti[rec] = pm.Speech_Transmission_Index(etc, rho_c, noise, samplefreq)
-    return sti
 
 if __name__ == '__main__':
+
+    import os
+    import rhinoscriptsyntax as rs
     
-    from rhino_to_json import draw_model_from_json
 
-    rs.DeleteObjects(rs.AllObjects())
-
-    # load model from json file ------------------------------------------------
-
-    filepath = 'simple_box.json'
-
-    draw_model_from_json(filepath, mesh=False)
-    rs.CurrentLayer('Default')
+    rs.DeleteObjects(rs.ObjectsByLayer('Default'))
+    
     # user input ---------------------------------------------------------------
-    w = {'abs': [17., 15., 10., 6., 4., 4., 5., 6.], 'sct': [.2] * 8, 'trn': [0] * 8}
+    wall = {'abs': [17., 15., 10., 6., 4., 4., 5., 6.], 'sct': [.2] * 8, 'trn': [0] * 8}
     
-    lay_dict = {'walls': w}
+    lay_dict = {'walls': wall}
     
     # run simulation -----------------------------------------------------------
     src = rs.PointCoordinates(rs.ObjectsByLayer('src')[0])
     mics = [rs.PointCoordinates(rpt) for rpt in rs.ObjectsByLayer('mics')]
-    
-    mic_map = make_mic_map(mics)
-    
-    
-    for k in mic_map:
-        rs.AddTextDot(str(mic_map[k]['index']), mic_map[k]['xyz'])
-    
     assign_materials_by_layer(lay_dict)
-    etcs = pach_run(src, mics, num_rays=10000, max_duration=2000)
-    
-    filepath = 'etcs.json'
+    etcs = pach_run(src, mics, num_rays=10000)
+
+    path = 'C:/Users/tmendeze/Documents/uw_code/compas_roomacoustics/temp/'
+    filepath = os.path.join(path, 'etcs.json')
     etcs_to_json(filepath, etcs)
     sch_int = pach_sch_int(etcs)
     edt = pach_edt(sch_int)
@@ -187,6 +128,6 @@ if __name__ == '__main__':
     names = ['edt', 't30', 'sti']
     
     for i, index in enumerate([edt, t30, sti]):
-        print names[i]
+        print(names[i])
         for j in index:
-            print index[j]
+            print(index[j])
