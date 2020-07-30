@@ -35,9 +35,11 @@ class Room(object):
     ...
     """
     # TODO: volume from is_boundary property
-    # TODO sabine RT
-    # TODO: Surface properties are needed, now storing all materials in each srf!!!
+    # TODO: sabine RT
+    # TODO: check to data, what is going on with power on non solved model
+    # TODO: Result object???
 
+ 
     def __init__(self):
         self.name           = 'Acoustic_Room'
         self.tol            = '3f' # tolerance for generating geometric keys
