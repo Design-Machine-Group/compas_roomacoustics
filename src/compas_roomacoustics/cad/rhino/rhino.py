@@ -41,6 +41,7 @@ def room_from_rhino(frequencies, srf_dict, src_layer, src_power, mic_layer):
         srf_pts = []
         for guid in guids:
             pts = [[pt.X, pt.Y, pt.Z] for pt in rs.SurfacePoints(guid)]
+            pts = [pts[0], pts[1], pts[3], pts[2]]
             srf_pts.append(pts)
         room.add_material(layer, mat['abs'], mat['sct'], mat['trn'])
         room.add_room_surfaces(srf_pts, layer, is_boundary)

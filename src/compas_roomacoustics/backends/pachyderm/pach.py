@@ -24,9 +24,7 @@ import Pachyderm_Acoustic as pach
 import Pachyderm_Acoustic.Environment as env
 import Pachyderm_Acoustic.Utilities.RC_PachTools as pt
 import Pachyderm_Acoustic.Utilities.IR_Construction as ir
-# import Pachyderm_Acoustic.Utilities.AcousticalMath as pm
 import Hare.Geometry.Point as hpt
-# import wave,struct
 
 from compas.utilities import geometric_key
 
@@ -36,6 +34,7 @@ from compas_roomacoustics.backends.pachyderm import pach_edt
 from compas_roomacoustics.backends.pachyderm import pach_t30
 from compas_roomacoustics.backends.pachyderm import pach_sti
 from compas_roomacoustics.backends.pachyderm import etcs_to_json
+from compas_roomacoustics.backends.pachyderm import add_room_surfaces
 
 
 
@@ -97,37 +96,44 @@ def pach_run(src, mics, num_rays=1000, max_duration=2000, image_order=1):
             etcs[gk][oct] = etc
     return etcs
 
-
+def room_to_pachyderm(room):
+    add_room_surfaces(room)
 
 if __name__ == '__main__':
 
     import os
     import rhinoscriptsyntax as rs
     
+    from compas_roomacoustics.datastructures import Room
 
-    rs.DeleteObjects(rs.ObjectsByLayer('Default'))
-    
-    # user input ---------------------------------------------------------------
-    wall = {'abs': [17., 15., 10., 6., 4., 4., 5., 6.], 'sct': [.2] * 8, 'trn': [0] * 8}
-    
-    lay_dict = {'walls': wall}
-    
-    # run simulation -----------------------------------------------------------
-    src = rs.PointCoordinates(rs.ObjectsByLayer('src')[0])
-    mics = [rs.PointCoordinates(rpt) for rpt in rs.ObjectsByLayer('mics')]
-    assign_materials_by_layer(lay_dict)
-    etcs = pach_run(src, mics, num_rays=10000)
+    path = 'c:\\users\\tmendeze\\documents\\uw_code\\compas_roomacoustics\\data'
+    filename = 'simple_box.json'
+    room = Room.from_json(os.path.join(path, filename))
+    room_to_pachyderm(room)
 
-    path = 'C:/Users/tmendeze/Documents/uw_code/compas_roomacoustics/temp/'
-    filepath = os.path.join(path, 'etcs.json')
-    etcs_to_json(filepath, etcs)
-    sch_int = pach_sch_int(etcs)
-    edt = pach_edt(sch_int)
-    t30 = pach_t30(sch_int)
-    sti = pach_sti(etcs)
-    names = ['edt', 't30', 'sti']
+    # rs.DeleteObjects(rs.ObjectsByLayer('Default'))
     
-    for i, index in enumerate([edt, t30, sti]):
-        print(names[i])
-        for j in index:
-            print(index[j])
+    # # user input ---------------------------------------------------------------
+    # wall = {'abs': [17., 15., 10., 6., 4., 4., 5., 6.], 'sct': [.2] * 8, 'trn': [0] * 8}
+    
+    # lay_dict = {'walls': wall}
+    
+    # # run simulation -----------------------------------------------------------
+    # src = rs.PointCoordinates(rs.ObjectsByLayer('src')[0])
+    # mics = [rs.PointCoordinates(rpt) for rpt in rs.ObjectsByLayer('mics')]
+    # assign_materials_by_layer(lay_dict)
+    # etcs = pach_run(src, mics, num_rays=10000)
+
+    # path = 'C:/Users/tmendeze/Documents/uw_code/compas_roomacoustics/temp/'
+    # filepath = os.path.join(path, 'etcs.json')
+    # etcs_to_json(filepath, etcs)
+    # sch_int = pach_sch_int(etcs)
+    # edt = pach_edt(sch_int)
+    # t30 = pach_t30(sch_int)
+    # sti = pach_sti(etcs)
+    # names = ['edt', 't30', 'sti']
+    
+    # for i, index in enumerate([edt, t30, sti]):
+    #     print(names[i])
+    #     for j in index:
+    #         print(index[j])

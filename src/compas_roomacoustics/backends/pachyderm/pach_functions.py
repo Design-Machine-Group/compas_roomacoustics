@@ -15,6 +15,21 @@ import Pachyderm_Acoustic.Utilities.RC_PachTools as pt
 
 from compas.utilities import geometric_key
 
+def add_room_surfaces(room):
+    print(room.materials.keys())
+    for sk in room.surfaces:
+        pts = room.surfaces[sk]['srf_pts']
+        mat = room.surfaces[sk]['material']
+        abs = room.materials[mat].absorption
+        sct = room.materials[mat].scattering
+        trn = room.materials[mat].transparency
+        srf = rs.AddSrfPt(pts)
+        if not rs.IsLayer(mat):
+            rs.AddLayer(mat)
+        rs.ObjectLayer(srf, mat)
+        pach_assign_material(srf, abs, sct, trn)
+
+
 def make_mic_map(mics):
     m = {geometric_key(mic): {'index':i, 'xyz': mic} for i, mic in enumerate(mics)}
     return m
