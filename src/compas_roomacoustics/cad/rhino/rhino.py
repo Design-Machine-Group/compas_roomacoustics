@@ -33,10 +33,10 @@ def room_from_rhino(frequencies, srf_dict, src_layer, src_power, mic_layer):
 
     # add surfaces ---------------------------------------------------------
 
-    for key in srfs_dict:
+    for key in srf_dict:
         layer = srf_dict[key]['layer']
         mat = srf_dict[key]['material']
-        is_boundary = srfs_dict[key]['is_boundary']
+        is_boundary = srf_dict[key]['is_boundary']
         guids = rs.ObjectsByLayer(layer)
         srf_pts = []
         for guid in guids:
@@ -48,8 +48,6 @@ def room_from_rhino(frequencies, srf_dict, src_layer, src_power, mic_layer):
     return room
 
 if __name__ == '__main__':
-
-    
 
     import os
 
