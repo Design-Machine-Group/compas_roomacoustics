@@ -1,0 +1,6 @@
+{
+    "python.pythonPath": "/Users/tmendeze/opt/anaconda3/envs/igl/bin/python",
+    "python.linting.banditEnabled": true,
+    "python.linting.pylintEnabled": false,
+    "python.linting.enabled": true
+}
