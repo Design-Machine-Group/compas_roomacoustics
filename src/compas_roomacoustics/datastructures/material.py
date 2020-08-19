@@ -1,5 +1,6 @@
 from __future__ import print_function
-#TODO: summary
+
+from ast import literal_eval
 
 __all__ = ['Material']
 
@@ -8,7 +9,7 @@ class Material(object):
     def __init__(self, name, absorption, scattering, transparency):
         self.name = name
         self.absorption = absorption
-        self.scatteting = scattering
+        self.scattering = scattering
         self.transparency = transparency
 
     @property
@@ -17,41 +18,41 @@ class Material(object):
         """
         data = {'name'          : self.name,
                 'absorption'    : {},
-                'scatteting'    : {},
+                'scattering'    : {},
                 'transparency'  : {},
                 }
 
         for key in self.absorption:
-            data['absorption'][repr(key)] = self.absorption[key]
+            data['absorption'][literal_eval(key)] = self.absorption[key]
 
-        for key in self.scatteting:
-            data['scatteting'][repr(key)] = self.scatteting[key]
+        for key in self.scattering:
+            data['scattering'][literal_eval(key)] = self.scattering[key]
 
         for key in self.transparency:
-            data['transparency'][repr(key)] = self.transparency[key]
+            data['transparency'][literal_eval(key)] = self.transparency[key]
 
         return data
 
     @data.setter
     def data(self, data):
         self.name           = data.get('name') or {}
-        self.scatteting     = data.get('scatteting') or {}
+        self.scattering     = data.get('scattering') or {}
         self.transparency   = data.get('transparency') or {}
 
         absorption  = data.get('absorption') or {}
         self.absorption = {}
         for akey in absorption:
-            self.absorption[repr(akey)] = absorption[akey]
+            self.absorption[literal_eval(akey)] = absorption[akey]
 
-        scatteting  = data.get('scatteting') or {}
-        self.scatteting = {}
-        for akey in scatteting:
-            self.scatteting[repr(akey)] = scatteting[akey]
+        scattering  = data.get('scattering') or {}
+        self.scattering = {}
+        for akey in scattering:
+            self.scattering[literal_eval(akey)] = scattering[akey]
 
         transparency  = data.get('transparency') or {}
         self.transparency = {}
         for akey in transparency:
-            self.transparency[repr(akey)] = transparency[akey]
+            self.transparency[literal_eval(akey)] = transparency[akey]
 
     @classmethod
     def from_data(cls, data):

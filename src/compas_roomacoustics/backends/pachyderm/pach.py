@@ -38,13 +38,14 @@ from compas_roomacoustics.backends.pachyderm import add_room_surfaces
 
 
 
-def pach_run(src, mics, num_rays=1000, max_duration=2000, image_order=1):
+def pach_run(room):
+    # src, mics, num_rays=1000, max_duration=2000, image_order=1
 
     rec = NetList[hpt]()
-    for mic in mics:
+    for mic in room.mics:
         rec.Add(hpt(mic[0], mic[1], mic[2]))
 
-    src_h = hpt(src[0], src[1], src[2])
+    src_h = hpt(room.src[0], room.src[1], room.src[2])
     octaves = Array[int]([0, 7])
 
     # - Acoustic Simulation ----------------------------------------------------
@@ -98,6 +99,7 @@ def pach_run(src, mics, num_rays=1000, max_duration=2000, image_order=1):
 
 def room_to_pachyderm(room):
     add_room_surfaces(room)
+    etcs = pach_run(room)
 
 if __name__ == '__main__':
 
@@ -106,23 +108,12 @@ if __name__ == '__main__':
     
     from compas_roomacoustics.datastructures import Room
 
+    rs.DeleteObjects(rs.AllObjects())
+
     path = 'c:\\users\\tmendeze\\documents\\uw_code\\compas_roomacoustics\\data'
     filename = 'simple_box.json'
     room = Room.from_json(os.path.join(path, filename))
     room_to_pachyderm(room)
-
-    # rs.DeleteObjects(rs.ObjectsByLayer('Default'))
-    
-    # # user input ---------------------------------------------------------------
-    # wall = {'abs': [17., 15., 10., 6., 4., 4., 5., 6.], 'sct': [.2] * 8, 'trn': [0] * 8}
-    
-    # lay_dict = {'walls': wall}
-    
-    # # run simulation -----------------------------------------------------------
-    # src = rs.PointCoordinates(rs.ObjectsByLayer('src')[0])
-    # mics = [rs.PointCoordinates(rpt) for rpt in rs.ObjectsByLayer('mics')]
-    # assign_materials_by_layer(lay_dict)
-    # etcs = pach_run(src, mics, num_rays=10000)
 
     # path = 'C:/Users/tmendeze/Documents/uw_code/compas_roomacoustics/temp/'
     # filepath = os.path.join(path, 'etcs.json')

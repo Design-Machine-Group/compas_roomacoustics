@@ -2,6 +2,8 @@ from __future__ import print_function
 import json
 import math
 
+from ast import literal_eval
+
 from compas.utilities import geometric_key
 from compas.geometry import centroid_points
 
@@ -138,25 +140,25 @@ class Room(object):
 
         self.materials = {}
         for mkey in materials:
-            self.materials[repr(mkey)] = Material.from_data(materials[mkey])
+            self.materials[literal_eval(mkey)] = Material.from_data(materials[mkey])
 
         self.freq = {}
         for fkey in freq:
-            self.freq[repr(fkey)] = freq[fkey]
+            self.freq[literal_eval(fkey)] = freq[fkey]
 
         self.receivers = {}
         for rkey in receivers:
-            self.receivers[repr(rkey)] = receivers[rkey]
+            self.receivers[literal_eval(rkey)] = receivers[rkey]
 
         self.ray_times = {}
         self.ray_lengths = {}
         self.ray_powers = {}
         self.ray_lines = {}
         for rk in ray_times:
-            self.ray_times[repr(rk)] = {repr(k): ray_times[rk][k] for k in ray_times[rk]}
-            self.ray_lengths[repr(rk)] = {repr(k): ray_lengths[rk][k] for k in ray_lengths[rk]}
-            self.ray_powers[repr(rk)] = {repr(k): ray_powers[rk][k] for k in ray_powers[rk]}
-            self.ray_lines[repr(rk)] = {repr(k): ray_lines[rk][k] for k in ray_lines[rk]}
+            self.ray_times[literal_eval(rk)] = {literal_eval(k): ray_times[rk][k] for k in ray_times[rk]}
+            self.ray_lengths[literal_eval(rk)] = {literal_eval(k): ray_lengths[rk][k] for k in ray_lengths[rk]}
+            self.ray_powers[literal_eval(rk)] = {literal_eval(k): ray_powers[rk][k] for k in ray_powers[rk]}
+            self.ray_lines[literal_eval(rk)] = {literal_eval(k): ray_lines[rk][k] for k in ray_lines[rk]}
 
     def to_json(self, filepath):
         """Serialise the structured data representing the data structure to json.
@@ -192,6 +194,7 @@ class Room(object):
         """
         with open(filepath, 'r') as fp:
             data = json.load(fp)
+        
         room = cls()
         room.data = data
         return room

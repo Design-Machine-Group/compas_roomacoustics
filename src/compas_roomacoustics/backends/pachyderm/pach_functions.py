@@ -16,35 +16,38 @@ import Pachyderm_Acoustic.Utilities.RC_PachTools as pt
 from compas.utilities import geometric_key
 
 def add_room_surfaces(room):
-    print(room.materials.keys())
+    ok = list(room.materials.keys())[2]
     for sk in room.surfaces:
         pts = room.surfaces[sk]['srf_pts']
         mat = room.surfaces[sk]['material']
-        abs = room.materials[mat].absorption
+        abt = room.materials[mat].absorption
         sct = room.materials[mat].scattering
         trn = room.materials[mat].transparency
         srf = rs.AddSrfPt(pts)
         if not rs.IsLayer(mat):
             rs.AddLayer(mat)
         rs.ObjectLayer(srf, mat)
-        pach_assign_material(srf, abs, sct, trn)
+        pach_assign_material(srf, abt, sct, trn)
 
 
 def make_mic_map(mics):
     m = {geometric_key(mic): {'index':i, 'xyz': mic} for i, mic in enumerate(mics)}
     return m
 
-def pach_assign_material(guid, abs, sct, trn):
-    abs = Array[int](abs)
+def pach_assign_material(guid, abt, sct, trn):
+    abt = [abt[k] for k in sorted(list(abt.keys()))]
+    sct = [sct[k] for k in sorted(list(sct.keys()))]
+    trn = [trn[k] for k in sorted(list(trn.keys()))]
+    abt = Array[int](abt)
     sct = Array[int](sct)
     trn = Array[int](trn)
-    pt.Material_SetByObject(guid, abs, sct, trn)
+    pt.Material_SetByObject(guid, abt, sct, trn)
 
 def assign_materials_by_layer(lay_dict):
     for lay in lay_dict:
         srfs = rs.ObjectsByLayer(lay)
-        abs = lay_dict[lay]['abs']
+        abt = lay_dict[lay]['abs']
         sct = lay_dict[lay]['sct']
         trn = lay_dict[lay]['trn']
         for srf in srfs:
-            pach_assign_material(srf, abs, sct, trn)
+            pach_assign_material(srf, abt, sct, trn)
