@@ -35,9 +35,9 @@ def make_mic_map(mics):
     return m
 
 def pach_assign_material(guid, abt, sct, trn):
-    abt = [abt[k] for k in sorted(list(abt.keys()))]
-    sct = [sct[k] for k in sorted(list(sct.keys()))]
-    trn = [trn[k] for k in sorted(list(trn.keys()))]
+    abt = [abt[k] * 100 for k in sorted(list(abt.keys()))]
+    sct = [sct[k] * 100 for k in sorted(list(sct.keys()))]
+    trn = [trn[k] * 100 for k in sorted(list(trn.keys()))]
     abt = Array[int](abt)
     sct = Array[int](sct)
     trn = Array[int](trn)

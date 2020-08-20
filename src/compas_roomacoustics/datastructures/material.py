@@ -8,9 +8,9 @@ class Material(object):
 
     def __init__(self, name, absorption, scattering, transparency):
         self.name = name
-        self.absorption = absorption
-        self.scattering = scattering
-        self.transparency = transparency
+        self.absorption = absorption  # should be between 0 and 1
+        self.scattering = scattering  # should be between 0 and 1
+        self.transparency = transparency  # should be between 0 and 1
 
     @property
     def data(self):

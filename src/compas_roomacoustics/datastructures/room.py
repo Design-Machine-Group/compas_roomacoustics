@@ -46,9 +46,10 @@ class Room(object):
         self.name           = 'Acoustic_Room'
         self.tol            = '3f' # tolerance for generating geometric keys
         self.num_rays       = 1000 # number of rays used in analysis
-        self.ctime          = 1000. # cuttoff time in miliseconds
+        self.ctime          = 1000 # cuttoff time in miliseconds
         self.min_power      = .03 # minimum percentage of power in rays
         self.dt             = 3  # size of time interval for IR in miliseconds
+        self.image_order    = 1  # order of reflections for the source image method
 
         self.source         = {} # dict
         self.receivers      = {} # dict

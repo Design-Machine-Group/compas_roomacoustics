@@ -36,16 +36,21 @@ from compas_roomacoustics.backends.pachyderm import pach_sti
 from compas_roomacoustics.backends.pachyderm import etcs_to_json
 from compas_roomacoustics.backends.pachyderm import add_room_surfaces
 
+# TODO: Source power is still just a hack!
 
 
 def pach_run(room):
     # src, mics, num_rays=1000, max_duration=2000, image_order=1
 
-    rec = NetList[hpt]()
-    for mic in room.mics:
-        rec.Add(hpt(mic[0], mic[1], mic[2]))
+    rec_keys = list(room.receivers.keys())
 
-    src_h = hpt(room.src[0], room.src[1], room.src[2])
+    rec = NetList[hpt]()
+    for rk in rec_keys:
+        x, y, z = room.receivers[rk]['xyz']
+        rec.Add(hpt(x, y, z))
+
+    x, y, z = room.source.xyz
+    src_h = hpt(x, y, z)
     octaves = Array[int]([0, 7])
 
     # - Acoustic Simulation ----------------------------------------------------
@@ -61,40 +66,42 @@ def pach_run(room):
     env.RhCommon_PolygonScene.partition(scene, PTList, 10)
 
     # source power -------------------------------------------------------------
-    swl = tuple([100.] * 8)
+    swl = []
+    for pk in sorted(list(room.source.power), key=float):
+        swl.append(room.source.power[pk] * 1000)
+    swl = tuple(swl)
     Source = env.GeodesicSource(swl, src_h, 0)
     SourceIE = NetList[type(Source)]()
     SourceIE.Add(Source)
-    receiver = pt.GetReceivers(rec, SourceIE, num_rays ,max_duration, 0, scene)
+    receiver = pt.GetReceivers(rec, SourceIE, room.num_rays, room.ctime, 0, scene)
 
     # - Direct Sound Calculation -----------------------------------------------
-    D = pach.Direct_Sound(Source, receiver[0], scene,octaves)
+    D = pach.Direct_Sound(Source, receiver[0], scene, octaves)
     Dout = pt.Run_Simulation(D)
 
     # - Source Image Calculation -----------------------------------------------
-    IS = pach.ImageSourceData(Source,receiver[0], D, scene, image_order, 0)
+    IS = pach.ImageSourceData(Source,receiver[0], D, scene, room.image_order, 0)
     ISout = pt.Run_Simulation(IS)
 
     # - Ray Tracing  Calculation -----------------------------------------------
     RT = pach.SplitRayTracer(Source,
                              receiver[0],
                              scene,
-                             max_duration,
+                             room.ctime,
                              octaves,
-                             image_order,
-                             num_rays)
+                             room.image_order,
+                             room.num_rays)
 
     RTout = pt.Run_Simulation(RT)
     receiver_out = RTout.GetReceiver
 
     # - Energy Time Curves Calculation -----------------------------------------
     etcs = {}
-    for i in range(len(mics)):
-        gk = geometric_key(mics[i])
-        etcs[gk] ={}
+    for i, rk in enumerate(rec_keys):
+        etcs[rk] ={}
         for oct in range(8):
-            etc =  ir.ETCurve(Dout, ISout, receiver_out, max_duration, 1000, oct, i, True)
-            etcs[gk][oct] = etc
+            etc =  ir.ETCurve(Dout, ISout, receiver_out, room.ctime, 1000, oct, i, True)
+            etcs[rk][oct] = etc
     return etcs
 
 def room_to_pachyderm(room):
