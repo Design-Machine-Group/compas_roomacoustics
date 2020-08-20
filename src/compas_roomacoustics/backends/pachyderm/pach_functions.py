@@ -29,7 +29,6 @@ def add_room_surfaces(room):
         rs.ObjectLayer(srf, mat)
         pach_assign_material(srf, abt, sct, trn)
 
-
 def make_mic_map(mics):
     m = {geometric_key(mic): {'index':i, 'xyz': mic} for i, mic in enumerate(mics)}
     return m

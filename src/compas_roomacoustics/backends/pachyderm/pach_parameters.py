@@ -40,15 +40,14 @@ def pach_t30(sch_int):
             t30[rec][oct] = pm.T_X(sch, 30, 1000)
     return t30
 
-def pach_sti(etcs):
-    #TODO: Implement proper noise input, check outputs against pachyderm
+def pach_sti(etcs, room):
     sti = {}
     for rec in etcs:
         sti[rec] = {}
         etcs_arr = [Array[float](etcs[rec]) for oct in etcs[rec]]
         etc = Array[Array[float]](etcs_arr)
         rho_c = 342.2 * 1000.1
-        noise = [40.] * 8   # this is not correct yet !!!!!!!
+        noise = [room.noise[nk] for nk in sorted(list(room.noise.keys()), key=float)]
         noise = Array[float](noise)
         samplefreq = 4
         sti[rec] = pm.Speech_Transmission_Index(etc, rho_c, noise, samplefreq)

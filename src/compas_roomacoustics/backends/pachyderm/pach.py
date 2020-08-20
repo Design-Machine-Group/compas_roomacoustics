@@ -40,10 +40,7 @@ from compas_roomacoustics.backends.pachyderm import add_room_surfaces
 
 
 def pach_run(room):
-    # src, mics, num_rays=1000, max_duration=2000, image_order=1
-
     rec_keys = list(room.receivers.keys())
-
     rec = NetList[hpt]()
     for rk in rec_keys:
         x, y, z = room.receivers[rk]['xyz']
@@ -107,6 +104,10 @@ def pach_run(room):
 def room_to_pachyderm(room):
     add_room_surfaces(room)
     etcs = pach_run(room)
+    sch_int = pach_sch_int(etcs)
+    edt = pach_edt(sch_int)
+    t30 = pach_t30(sch_int)
+    sti = pach_sti(etcs, room)
 
 if __name__ == '__main__':
 
@@ -120,16 +121,8 @@ if __name__ == '__main__':
     path = 'c:\\users\\tmendeze\\documents\\uw_code\\compas_roomacoustics\\data'
     filename = 'simple_box.json'
     room = Room.from_json(os.path.join(path, filename))
+    room.noise ={'62': 55, '125': 50, '250': 55, '500': 40, '1000': 35, '2000': 30, '4000': 25, '8000': 20}
     room_to_pachyderm(room)
-
-    # path = 'C:/Users/tmendeze/Documents/uw_code/compas_roomacoustics/temp/'
-    # filepath = os.path.join(path, 'etcs.json')
-    # etcs_to_json(filepath, etcs)
-    # sch_int = pach_sch_int(etcs)
-    # edt = pach_edt(sch_int)
-    # t30 = pach_t30(sch_int)
-    # sti = pach_sti(etcs)
-    # names = ['edt', 't30', 'sti']
     
     # for i, index in enumerate([edt, t30, sti]):
     #     print(names[i])

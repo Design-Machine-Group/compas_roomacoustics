@@ -60,6 +60,7 @@ class Room(object):
         self.ray_lines      = {} # dict
         self.freq           = {} # dictionary of frequencies used in the analysis
         self.materials      = {} # dict
+        self.noise          = {} # dict
 
     def __str__(self):
         """Print a summary of the room."""
