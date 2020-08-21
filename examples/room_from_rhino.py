@@ -12,8 +12,8 @@ import os
 
 from compas_roomacoustics.cad.rhino import room_from_rhino
 
-path = 'c:\\users\\tmendeze\\documents\\uw_code\\compas_roomacoustics\\temp'
-filename = 'simple_box.json'
+path = 'c:\\users\\tmendeze\\documents\\uw_code\\compas_roomacoustics\\data'
+filename = 'simple_box_allrecs.json'
 filepath = os.path.join(path, filename)
 
 

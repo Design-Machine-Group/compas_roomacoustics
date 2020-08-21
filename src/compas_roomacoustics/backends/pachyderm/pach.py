@@ -103,7 +103,7 @@ def pach_run(room):
     return etcs
 
 
-def results_from_pach(room, etcs, param):
+def results_from_pach(room, etcs, param, save_curves=False):
     fdict = {'edt': pach_edt, 't30': pach_t30, 'sti': pach_sti}
     sch_int = pach_sch_int(etcs)
     results = {}
@@ -124,13 +124,26 @@ def results_from_pach(room, etcs, param):
             r.t30 = results['t30'][rk]
         if 'sti' in results:
             r.sti = results['sti'][rk]
+        
+        if save_curves:
+            sch = {oct: timecurve_to_timedict(sch_int[rk][oct]) for oct in sch_int[rk]}
+            r.sch_int =  sch
+
+            etc = {oct: timecurve_to_timedict(etcs[rk][oct]) for oct in etcs[rk]}
+            r.etc = etc
+
         room.results[rk] = r
 
 
-def room_to_pachyderm(room):
+def timecurve_to_timedict(curve):
+    t = {'{},{}'.format(i, i + 1): v for i, v in enumerate(curve) if v}
+    return t
+
+
+def room_to_pachyderm(room, save_curves=False):
     add_room_surfaces(room)
     etcs = pach_run(room)
-    results_from_pach(room, etcs, ['edt', 't30', 'sti'])
+    results_from_pach(room, etcs, ['edt', 't30', 'sti'], save_curves=save_curves)
 
 if __name__ == '__main__':
 
@@ -145,10 +158,7 @@ if __name__ == '__main__':
     filename = 'simple_box.json'
     room = Room.from_json(os.path.join(path, filename))
     room.noise = {'62': 55, '125': 50, '250': 55, '500': 40, '1000': 35, '2000': 30, '4000': 25, '8000': 20}
-    room_to_pachyderm(room)
+    room.num_rays = 10000
+    room.ctime = 2000
+    room_to_pachyderm(room, save_curves=True)
     room.to_json(os.path.join(path, 'simple_box_out.json'))
-
-    room_ = Room.from_json(os.path.join(path, 'simple_box_out.json'))
-    print(room_.results)
-    for rk in room_.results:
-        print(room_.results[rk])
