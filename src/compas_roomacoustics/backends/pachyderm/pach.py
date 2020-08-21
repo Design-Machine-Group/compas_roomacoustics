@@ -117,7 +117,7 @@ def results_from_pach(room, etcs, param):
     
     
     for rk in room.receivers:
-        r = Result(rk)
+        r = Result(rk, restype='Pachyderm')
         if 'edt' in results:
             r.edt = results['edt'][rk]
         if 't30' in results:
@@ -147,3 +147,8 @@ if __name__ == '__main__':
     room.noise = {'62': 55, '125': 50, '250': 55, '500': 40, '1000': 35, '2000': 30, '4000': 25, '8000': 20}
     room_to_pachyderm(room)
     room.to_json(os.path.join(path, 'simple_box_out.json'))
+
+    room_ = Room.from_json(os.path.join(path, 'simple_box_out.json'))
+    print(room_.results)
+    for rk in room_.results:
+        print(room_.results[rk])

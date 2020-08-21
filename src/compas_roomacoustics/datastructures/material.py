@@ -23,13 +23,13 @@ class Material(object):
                 }
 
         for key in self.absorption:
-            data['absorption'][literal_eval(key)] = self.absorption[key]
+            data['absorption'][literal_eval(str(key))] = self.absorption[key]
 
         for key in self.scattering:
-            data['scattering'][literal_eval(key)] = self.scattering[key]
+            data['scattering'][literal_eval(str(key))] = self.scattering[key]
 
         for key in self.transparency:
-            data['transparency'][literal_eval(key)] = self.transparency[key]
+            data['transparency'][literal_eval(str(key))] = self.transparency[key]
 
         return data
 
@@ -42,17 +42,17 @@ class Material(object):
         absorption  = data.get('absorption') or {}
         self.absorption = {}
         for akey in absorption:
-            self.absorption[literal_eval(akey)] = absorption[akey]
+            self.absorption[literal_eval(str(akey))] = absorption[akey]
 
         scattering  = data.get('scattering') or {}
         self.scattering = {}
         for akey in scattering:
-            self.scattering[literal_eval(akey)] = scattering[akey]
+            self.scattering[literal_eval(str(akey))] = scattering[akey]
 
         transparency  = data.get('transparency') or {}
         self.transparency = {}
         for akey in transparency:
-            self.transparency[literal_eval(akey)] = transparency[akey]
+            self.transparency[literal_eval(str(akey))] = transparency[akey]
 
     @classmethod
     def from_data(cls, data):
@@ -74,10 +74,10 @@ class Material(object):
         corresponding *to_data* method.
         """
         name = data['name']
-        scatteting = data['scatteting']
+        scattering = data['scattering']
         transparency = data['transparency']
         absorption = data['absorption']
-        material = cls(name, absorption, scatteting, transparency)
+        material = cls(name, absorption, scattering, transparency)
         return material
 
 

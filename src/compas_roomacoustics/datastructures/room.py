@@ -9,6 +9,7 @@ from compas.geometry import centroid_points
 
 from material import Material
 from source import FibSource
+from result import Result
 
 
 
@@ -140,6 +141,7 @@ class Room(object):
         freq            = data.get('freq') or {}
         materials       = data.get('materials' or {})
         dt              = data.get('dt' or {})
+        results         = data.get('results' or {})
 
         self.tol        = tol
         self.num_rays   = num_rays
@@ -171,6 +173,11 @@ class Room(object):
             self.ray_lengths[literal_eval(rk)] = {literal_eval(k): ray_lengths[rk][k] for k in ray_lengths[rk]}
             self.ray_powers[literal_eval(rk)] = {literal_eval(k): ray_powers[rk][k] for k in ray_powers[rk]}
             self.ray_lines[literal_eval(rk)] = {literal_eval(k): ray_lines[rk][k] for k in ray_lines[rk]}
+
+        self.results = {}
+        for key in results:
+            self.results[literal_eval(key)] = Result.from_data(results[key])
+
 
     def to_json(self, filepath):
         """Serialise the structured data representing the data structure to json.
