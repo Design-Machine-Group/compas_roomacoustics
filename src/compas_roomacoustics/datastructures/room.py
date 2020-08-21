@@ -89,13 +89,16 @@ class Room(object):
                 'source'        : self.source.data,
                 'surfaces'      : self.surfaces,
                 'dt'            : self.dt,
+                'image_order'   : self.image_order,
                 'receivers'     : {},
                 'ray_times'     : {},
                 'ray_lengths'   : {},
                 'ray_powers'    : {},
                 'ray_lines'     : {},
                 'freq'          : {},
-                'materials'     : {}
+                'materials'     : {},
+                'noise'         : {},
+                'results'       : {},
                 }
 
         for key in self.receivers:
@@ -112,6 +115,12 @@ class Room(object):
             data['ray_lengths'][repr(rk)] = {repr(k): self.ray_lengths[rk][k] for k in self.ray_lengths[rk]}
             data['ray_powers'][repr(rk)] = {repr(k): self.ray_powers[rk][k] for k in self.ray_powers[rk]}
             data['ray_lines'][repr(rk)] = {repr(k): self.ray_lines[rk][k] for k in self.ray_lines[rk]}
+
+        for key in self.noise:
+            data['noise'][repr(key)] = self.noise[key]
+
+        for key in self.results:
+            data['results'][repr(key)] = self.results[key].data
 
         return data
 
