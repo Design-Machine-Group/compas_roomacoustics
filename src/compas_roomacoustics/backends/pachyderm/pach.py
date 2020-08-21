@@ -33,8 +33,9 @@ from compas_roomacoustics.backends.pachyderm import pach_sch_int
 from compas_roomacoustics.backends.pachyderm import pach_edt
 from compas_roomacoustics.backends.pachyderm import pach_t30
 from compas_roomacoustics.backends.pachyderm import pach_sti
-from compas_roomacoustics.backends.pachyderm import etcs_to_json
 from compas_roomacoustics.backends.pachyderm import add_room_surfaces
+
+from compas_roomacoustics.datastructures import Result
 
 # TODO: Source power is still just a hack!
 
@@ -101,13 +102,34 @@ def pach_run(room):
             etcs[rk][oct] = etc
     return etcs
 
+
+def results_from_pach(room, etcs, param):
+    fdict = {'edt': pach_edt, 't30': pach_t30, 'sti': pach_sti}
+    sch_int = pach_sch_int(etcs)
+    results = {}
+    for fk in fdict:
+        func = fdict[fk]
+        if fk in ['sti']:
+            res = func(etcs, room)
+        else:
+            res = func(sch_int)
+        results[fk] = res
+    
+    for rk in room.receivers:
+        r = Result(rk)
+        if 'edt' in results:
+            r.edt = results['edt'][rk]
+        if 't30' in results:
+            r.t30 = results['t30'][rk]
+        if 'sti' in results:
+            r.sti = results['sti'][rk]
+        room.results[rk] = r
+
+
 def room_to_pachyderm(room):
     add_room_surfaces(room)
     etcs = pach_run(room)
-    sch_int = pach_sch_int(etcs)
-    edt = pach_edt(sch_int)
-    t30 = pach_t30(sch_int)
-    sti = pach_sti(etcs, room)
+    results_from_pach(room, etcs, ['edt', 't30', 'sti'])
 
 if __name__ == '__main__':
 
@@ -121,10 +143,7 @@ if __name__ == '__main__':
     path = 'c:\\users\\tmendeze\\documents\\uw_code\\compas_roomacoustics\\data'
     filename = 'simple_box.json'
     room = Room.from_json(os.path.join(path, filename))
-    room.noise ={'62': 55, '125': 50, '250': 55, '500': 40, '1000': 35, '2000': 30, '4000': 25, '8000': 20}
+    room.noise = {'62': 55, '125': 50, '250': 55, '500': 40, '1000': 35, '2000': 30, '4000': 25, '8000': 20}
     room_to_pachyderm(room)
-    
-    # for i, index in enumerate([edt, t30, sti]):
-    #     print(names[i])
-    #     for j in index:
-    #         print(index[j])
+    for rk in room.results:
+        print(room.results[rk])

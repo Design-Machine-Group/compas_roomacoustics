@@ -61,6 +61,7 @@ class Room(object):
         self.freq           = {} # dictionary of frequencies used in the analysis
         self.materials      = {} # dict
         self.noise          = {} # dict
+        self.results          = {} # dict
 
     def __str__(self):
         """Print a summary of the room."""

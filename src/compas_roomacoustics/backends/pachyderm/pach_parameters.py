@@ -47,8 +47,10 @@ def pach_sti(etcs, room):
         etcs_arr = [Array[float](etcs[rec]) for oct in etcs[rec]]
         etc = Array[Array[float]](etcs_arr)
         rho_c = 342.2 * 1000.1
+        if not room.noise:
+            raise NameError('This room has no bacround noise profile')
         noise = [room.noise[nk] for nk in sorted(list(room.noise.keys()), key=float)]
         noise = Array[float](noise)
         samplefreq = 4
-        sti[rec] = pm.Speech_Transmission_Index(etc, rho_c, noise, samplefreq)
+        sti[rec] = list(pm.Speech_Transmission_Index(etc, rho_c, noise, samplefreq))
     return sti

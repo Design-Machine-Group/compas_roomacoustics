@@ -11,3 +11,4 @@ __email__      = 'tmendeze@uw.edu'
 from .room import *
 from .material import *
 from .source import *
+from .result import *
