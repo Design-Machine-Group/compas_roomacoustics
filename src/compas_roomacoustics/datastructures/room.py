@@ -7,9 +7,9 @@ from ast import literal_eval
 from compas.utilities import geometric_key
 from compas.geometry import centroid_points
 
-from material import Material
-from source import FibSource
-from result import Result
+from compas_roomacoustics.datastructures.material import Material
+from compas_roomacoustics.datastructures.source import FibSource
+from compas_roomacoustics.datastructures.result import Result
 
 
 
