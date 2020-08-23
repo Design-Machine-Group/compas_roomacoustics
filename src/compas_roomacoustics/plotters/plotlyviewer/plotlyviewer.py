@@ -23,53 +23,45 @@ class PlotlyViewer(object):
         self.room       = room
         self.layout     = None
         self.fig        = None
-        self.data       = {}
+        self.data       = []
 
     def show(self):
         self.make_layout()
+        self.add_recdata()
         self.add_surface_edges()
         self.add_source()
-        self.add_recdata()
-
-        data = [self.data[key] for key in self.data]
-        self.fig = go.Figure(data=data, layout=self.layout)
-        self.fig.show()
-        # self._show()
+        self.fig = go.Figure(data=self.data, layout=self.layout)
+        self._show()
 
 
     def _show(self):
-        # for i in range(1, modes * 2):
-            # fig.data[i].visible = False
 
-        self.fig.data[1].visible = False
-
-        # Create and add slider
         steps = []
-        for i in range(len(self.fig.data)):
+        freq = sorted(list(self.room.freq.keys()), key=float)
+        for f in freq:
             step = {'method':'update',
-                    'args':[{'visible': [False] * len(self.fig.data)},
+                    'args':[{'visible': [False] * (len(self.room.freq) + 2)},
                             {'title': 'testing'}],
-                    'label':str(i)}
-            # step["args"][0]["visible"][i * 2] = True
-            # step["args"][0]["visible"][i * 2 + 1] = True
+                    'label':str(self.room.freq[f])}
+            step["args"][0]["visible"][f] = True
+            step["args"][0]["visible"][-1] = True
+            step["args"][0]["visible"][-2] = True
             steps.append(step)
 
-        sliders = [dict(
-            active=0,
-            currentvalue={"prefix": "Mode: "},
-            pad={"t": 50},
-            steps=steps
-        )]
+        sliders = [{'active':0,
+                    'currentvalue':{'prefix': 'Frequency: '},
+                    'pad':{'t': 20},
+                    'steps':steps,
+                    }]
 
         self.fig.update_layout(sliders=sliders)
-
         self.fig.show()
 
 
     def add_recdata(self):
         param = 'edt'
         results = self.room.results
-        for freq in range(8):
+        for freq in room.freq:
             values = []
             x, y, z = [], [], []
             for key in results:
@@ -85,16 +77,19 @@ class PlotlyViewer(object):
             #     text.append('{} = {}'.format(param.upper(),v))
 
             points = go.Scatter3d(x=x, y=y, z=z, 
-                                mode='markers',
-                                marker_color=values,
-                                marker_colorbar={'thickness':20},
-                                marker_colorscale = 'Portland',
-                                # marker_colorscale = 'Viridis',
-                                # marker_colorscale = 'Thermal',
-                                showlegend= True,
-                                # hovertext=text,
-                                )
-            self.data[freq] = points
+                                  mode='markers',
+                                  showlegend= True,
+                                #   visible=False,
+                                  marker_color=values,
+                                  marker_colorbar={'thickness':30},
+                                  marker_colorscale='Portland',
+                                  # marker_colorscale='Viridis',
+                                  # marker_colorscale='Thermal',
+                                  # hovertext=text,
+                                  )
+
+            # key = '{}_{}'.format(param, room.freq[freq])
+            self.data.append(points)
 
 
     def make_layout(self):
@@ -141,7 +136,8 @@ class PlotlyViewer(object):
                              mode='lines',
                              line=line_marker,
                              showlegend=False,)
-        self.data['surface_edges'] = lines
+
+        self.data.append(lines)
 
 
     def add_source(self):
@@ -149,14 +145,15 @@ class PlotlyViewer(object):
         source = go.Scatter3d(x=[x], y=[y], z=[z], 
                               mode='markers+text',
                               marker_color='rgb(255, 255, 255)',
-                              marker_size=16,
+                              marker_size=14,
                               marker_line_width=1,
-                              marker_line_color='rgb(150, 150, 150)',
+                              marker_line_color='rgb(50, 50, 50)',
                               showlegend= False,
                               text='S',
                               textposition='middle center',
                               )
-        self.data['source'] = source
+
+        self.data.append(source)
 
 if __name__ == "__main__":
 
