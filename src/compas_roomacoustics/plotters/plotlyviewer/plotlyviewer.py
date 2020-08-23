@@ -9,7 +9,6 @@ __license__    = 'MIT License'
 __email__      = 'tmendeze@uw.edu'
 
 import plotly.graph_objects as go
-from compas.utilities import i_to_rgb
 
 import plotly.io as pio
 # pio.renderers.default = "firefox"
@@ -28,41 +27,74 @@ class PlotlyViewer(object):
 
     def show(self):
         self.make_layout()
-        self.plot_surface_edges()
-        self.plot_recdata()
+        self.add_surface_edges()
+        self.add_source()
+        self.add_recdata()
 
         data = [self.data[key] for key in self.data]
-        fig = go.Figure(data=data, layout=self.layout)
-        fig.show()
+        self.fig = go.Figure(data=data, layout=self.layout)
+        self.fig.show()
+        # self._show()
 
-    def plot_recdata(self):
+
+    def _show(self):
+        # for i in range(1, modes * 2):
+            # fig.data[i].visible = False
+
+        self.fig.data[1].visible = False
+
+        # Create and add slider
+        steps = []
+        for i in range(len(self.fig.data)):
+            step = {'method':'update',
+                    'args':[{'visible': [False] * len(self.fig.data)},
+                            {'title': 'testing'}],
+                    'label':str(i)}
+            # step["args"][0]["visible"][i * 2] = True
+            # step["args"][0]["visible"][i * 2 + 1] = True
+            steps.append(step)
+
+        sliders = [dict(
+            active=0,
+            currentvalue={"prefix": "Mode: "},
+            pad={"t": 50},
+            steps=steps
+        )]
+
+        self.fig.update_layout(sliders=sliders)
+
+        self.fig.show()
+
+
+    def add_recdata(self):
+        param = 'edt'
         results = self.room.results
-        x, y, z = [], [],  []
-        
-        values = []
-        for key in results:
-            pt = room.receivers[key]['xyz']
-            x.append(pt[0])
-            y.append(pt[1])
-            z.append(pt[2])
-            values.append(room.results[key].edt[5])
+        for freq in range(8):
+            values = []
+            x, y, z = [], [], []
+            for key in results:
+                pt = room.receivers[key]['xyz']
+                x.append(pt[0])
+                y.append(pt[1])
+                z.append(pt[2])
+                values.append(room.results[key].edt[freq])
 
-        vmax = max(values)
-        vmin = min(values)
-        color = []
-        text = []
-        for v in values:
-            r, g, b = i_to_rgb((v - vmin)/(vmax - vmin))
-            color.append('rgb({0},{1},{2})'.format(r, g, b))
-            text.append('EDT = {}'.format(v))
+            # text = []
+            # for v in values:
+            #     r, g, b = i_to_rgb((v - min(values))/(max(values) - min(values)))
+            #     text.append('{} = {}'.format(param.upper(),v))
 
-        # marker = {'color':color, 'size':8, 'text':values}
-
-        points = go.Scatter3d(x=x, y=y, z=z, 
-                              mode='markers',
-                              marker_color=color,
-                              text=text)
-        self.data['data_points'] = points
+            points = go.Scatter3d(x=x, y=y, z=z, 
+                                mode='markers',
+                                marker_color=values,
+                                marker_colorbar={'thickness':20},
+                                marker_colorscale = 'Portland',
+                                # marker_colorscale = 'Viridis',
+                                # marker_colorscale = 'Thermal',
+                                showlegend= True,
+                                # hovertext=text,
+                                )
+            self.data[freq] = points
 
 
     def make_layout(self):
@@ -92,7 +124,7 @@ class PlotlyViewer(object):
         self.layout = layout
 
 
-    def plot_surface_edges(self):
+    def add_surface_edges(self):
         srfs = self.room.surfaces
         lines = []
         for skey in srfs:
@@ -105,10 +137,26 @@ class PlotlyViewer(object):
             x.extend([u[0], v[0], [None]])
             y.extend([u[1], v[1], [None]])
             z.extend([u[2], v[2], [None]])
-        lines = go.Scatter3d(x=x, y=y, z=z, mode='lines', line=line_marker)
+        lines = go.Scatter3d(x=x, y=y, z=z, 
+                             mode='lines',
+                             line=line_marker,
+                             showlegend=False,)
         self.data['surface_edges'] = lines
 
 
+    def add_source(self):
+        x, y, z = self.room.source.xyz
+        source = go.Scatter3d(x=[x], y=[y], z=[z], 
+                              mode='markers+text',
+                              marker_color='rgb(255, 255, 255)',
+                              marker_size=16,
+                              marker_line_width=1,
+                              marker_line_color='rgb(150, 150, 150)',
+                              showlegend= False,
+                              text='S',
+                              textposition='middle center',
+                              )
+        self.data['source'] = source
 
 if __name__ == "__main__":
 
@@ -119,8 +167,8 @@ if __name__ == "__main__":
 
     from compas_roomacoustics.datastructures import Room
 
-    filename = 'simple_box_out.json'
-    # filename = 'simple_box_allrecs_out.json'
+    # filename = 'simple_box_out.json'
+    filename = 'simple_box_allrecs_out.json'
 
     room = Room.from_json(compas_roomacoustics.get(filename))
     v = PlotlyViewer(room)
