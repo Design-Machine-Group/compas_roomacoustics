@@ -16,6 +16,7 @@ import plotly.io as pio
 
 all = ['CurvesPlotter']
 
+#TODO: How to pick the mic to plot? xyz???
 
 class CurvesPlotter(object):
 
@@ -25,7 +26,7 @@ class CurvesPlotter(object):
         self.fig        = None
         self.data       = []
     
-    def show(self):
+    def show(self, max_time=None):
         data = []
         freq = 4
         rkey = list(self.room.results.keys())[7]
@@ -34,17 +35,29 @@ class CurvesPlotter(object):
             etc = self.room.results[rkey].etc[freq]
             x, y = [], []
             keys = sorted(list(etc.keys()), key=lambda x: float(x.split(',')[0]))
+            if not max_time:
+                time = [float(key.split(',')[0]) for key in keys]
+                max_time = max(time)
             for key in keys:
-                x.append(float(key.split(',')[0]))
+                time = float(key.split(',')[0])
+                x.append(time)
                 y.append(etc[key])
+                if time > max_time:
+                    break
 
-            lines = go.Scatter(x=x,
-                               y=y,
-                               mode='lines',
-                               name='{} Hz'.format(room.freq[freq]),
-                               line={'width':3,}
-                            )
-            data.append(lines)
+            bars = go.Bar(x=x,
+                           y=y,
+                           name='{} Hz'.format(room.freq[freq]),
+                           )
+            data.append(bars)
+
+            # lines = go.Scatter(x=x,
+            #                    y=y,
+            #                    mode='lines',
+            #                    name='{} Hz'.format(room.freq[freq]),
+            #                    line={'width':3,}
+            #                   )
+            # data.append(lines)
 
         fig = go.Figure(data)
         fig.update_layout(yaxis_type="log")
