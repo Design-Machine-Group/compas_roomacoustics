@@ -67,6 +67,7 @@ class Result(object):
                 't30'           : {},
                 'edt'           : {},
                 'sch_int'       : {},
+                'c80'           : {},
                 'sti'           : self.sti,
                 }
 
@@ -78,6 +79,9 @@ class Result(object):
 
         for key in self.edt:
             data['edt'][literal_eval(str(key))] = self.edt[key]
+
+        for key in self.c80:
+            data['c80'][literal_eval(str(key))] = self.c80[key]
 
         for key in self.sch_int:
             data['sch_int'][literal_eval(str(key))] = self.sch_int[key]
@@ -105,6 +109,11 @@ class Result(object):
         self.edt = {}
         for key in edt:
             self.edt[literal_eval(key)] = edt[key]
+
+        c80  = data.get('c80') or {}
+        self.c80 = {}
+        for key in c80:
+            self.c80[literal_eval(key)] = c80[key]
 
         sch_int  = data.get('sch_int') or {}
         self.sch_int = {}

@@ -40,6 +40,16 @@ def pach_t30(sch_int):
             t30[rec][oct] = pm.T_X(sch, 30, 1000)
     return t30
 
+def pach_c80(etcs, start_times):
+    clarity = {}
+    for rec in etcs:
+        clarity[rec] = {}
+        start_time = start_times[rec]
+        for oct in etcs[rec]:
+            etc = etcs[rec][oct]
+            clarity[rec][oct] = pm.Clarity(etc, 1000, .08, start_time, False)
+    return clarity
+
 def pach_sti(etcs, room):
     sti = {}
     for rec in etcs:
@@ -51,6 +61,6 @@ def pach_sti(etcs, room):
             raise NameError('This room has no bacround noise profile')
         noise = [room.noise[nk] for nk in sorted(list(room.noise.keys()), key=float)]
         noise = Array[float](noise)
-        samplefreq = 4
+        samplefreq = 1000
         sti[rec] = list(pm.Speech_Transmission_Index(etc, rho_c, noise, samplefreq))
     return sti

@@ -33,6 +33,7 @@ from compas_roomacoustics.backends.pachyderm import pach_sch_int
 from compas_roomacoustics.backends.pachyderm import pach_edt
 from compas_roomacoustics.backends.pachyderm import pach_t30
 from compas_roomacoustics.backends.pachyderm import pach_sti
+from compas_roomacoustics.backends.pachyderm import pach_c80
 from compas_roomacoustics.backends.pachyderm import add_room_surfaces
 
 from compas_roomacoustics.datastructures import Result
@@ -75,7 +76,7 @@ def pach_run(room):
 
     # - Direct Sound Calculation -----------------------------------------------
     D = pach.Direct_Sound(Source, receiver[0], scene, octaves)
-    Dout = pt.Run_Simulation(D)
+    dout = pt.Run_Simulation(D)
 
     # - Source Image Calculation -----------------------------------------------
     IS = pach.ImageSourceData(Source,receiver[0], D, scene, room.image_order, 0)
@@ -95,22 +96,30 @@ def pach_run(room):
 
     # - Energy Time Curves Calculation -----------------------------------------
     etcs = {}
+    start_times = {}
     for i, rk in enumerate(rec_keys):
-        etcs[rk] ={}
+        etcs[rk] = {}
+        start_times[rk] = pach.Direct_Sound.Min_Time(dout, i)
         for oct in range(8):
-            etc =  ir.ETCurve(Dout, ISout, receiver_out, room.ctime, 1000, oct, i, True)
+            etc =  ir.ETCurve(dout, ISout, receiver_out, room.ctime, 1000, oct, i, True)
             etcs[rk][oct] = etc
-    return etcs
+    return {'etcs': etcs, 'start_times': start_times}
 
-
-def results_from_pach(room, etcs, param, save_curves=False):
-    fdict = {'edt': pach_edt, 't30': pach_t30, 'sti': pach_sti}
+def results_from_pach(room, out_data, param, save_curves=False):
+    fdict = {'edt': pach_edt,
+             't30': pach_t30,
+             'sti': pach_sti,
+             'c80': pach_c80}
+    etcs = out_data['etcs']
+    start_times = out_data['start_times']
     sch_int = pach_sch_int(etcs)
     results = {}
     for fk in fdict:
         func = fdict[fk]
         if fk in ['sti']:
             res = func(etcs, room)
+        elif fk in ['c80']:
+            res = func(etcs, start_times)
         else:
             res = func(sch_int)
         results[fk] = res
@@ -124,26 +133,25 @@ def results_from_pach(room, etcs, param, save_curves=False):
             r.t30 = results['t30'][rk]
         if 'sti' in results:
             r.sti = results['sti'][rk]
-        
+        if 'c80' in results:
+            r.c80 = results['c80'][rk]
+
         if save_curves:
             sch = {oct: timecurve_to_timedict(sch_int[rk][oct]) for oct in sch_int[rk]}
             r.sch_int =  sch
 
             etc = {oct: timecurve_to_timedict(etcs[rk][oct]) for oct in etcs[rk]}
             r.etc = etc
-
         room.results[rk] = r
-
 
 def timecurve_to_timedict(curve):
     t = {'{},{}'.format(i, i + 1): v for i, v in enumerate(curve) if v}
     return t
 
-
 def room_to_pachyderm(room, save_curves=False):
     add_room_surfaces(room)
-    etcs = pach_run(room)
-    results_from_pach(room, etcs, ['edt', 't30', 'sti'], save_curves=save_curves)
+    out_data = pach_run(room)
+    results_from_pach(room, out_data, ['edt', 't30', 'sti'], save_curves=save_curves)
 
 if __name__ == '__main__':
 
@@ -155,10 +163,10 @@ if __name__ == '__main__':
     rs.DeleteObjects(rs.AllObjects())
 
     path = 'c:\\users\\tmendeze\\documents\\uw_code\\compas_roomacoustics\\data'
-    filename = 'simple_box.json'
+    filename = 'simple_box_allrecs.json'
     room = Room.from_json(os.path.join(path, filename))
     room.noise = {'62': 55, '125': 50, '250': 55, '500': 40, '1000': 35, '2000': 30, '4000': 25, '8000': 20}
     room.num_rays = 10000
     room.ctime = 2000
-    room_to_pachyderm(room, save_curves=True)
-    room.to_json(os.path.join(path, 'simple_box_out.json'))
+    room_to_pachyderm(room, save_curves=False)
+    room.to_json(os.path.join(path, 'simple_box_allrecs_out.json'))
