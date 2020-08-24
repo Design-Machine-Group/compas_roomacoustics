@@ -10,9 +10,7 @@ __email__      = 'tmendeze@uw.edu'
 
 
 import plotly.graph_objects as go
-
 import plotly.io as pio
-# pio.renderers.default = "firefox"
 
 all = ['CurvesPlotter']
 
@@ -25,6 +23,7 @@ class CurvesPlotter(object):
         self.layout     = None
         self.fig        = None
         self.data       = []
+        self.log        = True
     
     def show(self, max_time=None):
         data = []
@@ -46,9 +45,9 @@ class CurvesPlotter(object):
                     break
 
             bars = go.Bar(x=x,
-                           y=y,
-                           name='{} Hz'.format(room.freq[freq]),
-                           )
+                          y=y,
+                          name='{} Hz'.format(room.freq[freq]),
+                          )
             data.append(bars)
 
             # lines = go.Scatter(x=x,
@@ -60,7 +59,8 @@ class CurvesPlotter(object):
             # data.append(lines)
 
         fig = go.Figure(data)
-        fig.update_layout(yaxis_type="log")
+        if self.log:
+            fig.update_layout(yaxis_type='log')
         fig.show()
 
 

@@ -9,9 +9,7 @@ __license__    = 'MIT License'
 __email__      = 'tmendeze@uw.edu'
 
 import plotly.graph_objects as go
-
 import plotly.io as pio
-# pio.renderers.default = "firefox"
 
 all = ['PlotlyViewer']
 
@@ -20,37 +18,48 @@ class PlotlyViewer(object):
     """Plotly based viewer for modal analysis.
     """
     def __init__(self, room):
-        self.room       = room
-        self.layout     = None
-        self.fig        = None
-        self.data       = []
+        self.room           = room
+        self.layout         = None
+        self.fig            = None
+        self.data           = []
+        self.plot_materials = False
 
     def show(self):
         self.make_layout()
         self.add_recdata()
         self.add_surface_edges()
-        self.add_source()
+        if self.plot_materials:
+            self.add_materials()
+        self.add_source()    
         self.fig = go.Figure(data=self.data, layout=self.layout)
         self._show()
 
 
     def _show(self):
 
+        num = len(self.room.freq) + len(self.room.materials) + 2
+        num_ = len(self.room.materials) + 3
+        if not self.plot_materials:
+            num -= len(self.room.materials)
+            num_ -= len(self.room.materials)
+
         for i in range(1, len(self.fig.data)):
             self.fig.data[i].visible = False
-        self.fig.data[-1].visible = True
-        self.fig.data[-2].visible = True
+        for i in range(1, num_):
+            self.fig.data[-i].visible = True
 
         steps = []
         freq = sorted(list(self.room.freq.keys()), key=float)
+
         for f in freq:
             step = {'method':'update',
-                    'args':[{'visible': [False] * (len(self.room.freq) + 2)},
+                    'args':[{'visible': [False] * num},
                             {'title': 'EDT - {} Hz'.format(self.room.freq[f])}],
                     'label':'{} Hz'.format(self.room.freq[f])}
             step["args"][0]["visible"][f] = True
-            step["args"][0]["visible"][-1] = True
-            step["args"][0]["visible"][-2] = True
+            for i in range(1, num_):
+                step["args"][0]["visible"][-i] = True
+
             steps.append(step)
 
         sliders = [{'active':0,
@@ -61,6 +70,46 @@ class PlotlyViewer(object):
 
         self.fig.update_layout(sliders=sliders)
         self.fig.show()
+
+
+    def add_materials(self):
+
+        srfs = {mat: [] for mat in self.room.materials}
+        for srf in self.room.surfaces:
+            mat = self.room.surfaces[srf]['material']
+            srfs[mat].append(srf)
+
+        for mat in srfs: 
+            x, y, z = [], [], []
+            i, j, k = [], [], []
+            count = 0
+            for skey in srfs[mat]:
+                pts = self.room.surfaces[skey]['srf_pts']
+                x_, y_, z_ = [], [], []
+                for pt in pts:
+                    x_.append(pt[0])
+                    y_.append(pt[1])
+                    z_.append(pt[2])
+                i.extend((count, count + 2))
+                j.extend((count + 1, count + 3))
+                k.extend((count + 2, count))
+                count += 4
+                x.extend(x_)
+                y.extend(y_)
+                z.extend(z_)
+            
+
+            faces = go.Mesh3d(x=x,
+                              y=y,
+                              z=z,
+                              i=i,
+                              j=j,
+                              k=k,
+                              opacity=.5,
+                              showlegend=True,
+                              name=mat,
+                              )
+            self.data.append(faces)
 
 
     def add_recdata(self):
@@ -82,7 +131,7 @@ class PlotlyViewer(object):
 
             points = go.Scatter3d(x=x, y=y, z=z, 
                                   mode='markers',
-                                  showlegend= True,
+                                  showlegend= False,
                                 #   visible=False,
                                   marker_color=values,
                                   marker_colorbar={'thickness':30},
@@ -101,25 +150,26 @@ class PlotlyViewer(object):
         title = '{} - compas roomacoustics'.format(name)
         
         layout = go.Layout(title=title,
-                          scene=dict(aspectmode='data',
-                                    xaxis=dict(
-                                               gridcolor='rgb(255, 255, 255)',
-                                               zerolinecolor='rgb(255, 255, 255)',
-                                               showbackground=True,
-                                               backgroundcolor='rgb(230, 230,230)'),
-                                    yaxis=dict(
-                                               gridcolor='rgb(255, 255, 255)',
-                                               zerolinecolor='rgb(255, 255, 255)',
-                                               showbackground=True,
-                                               backgroundcolor='rgb(230, 230,230)'),
-                                    zaxis=dict(
-                                               gridcolor='rgb(255, 255, 255)',
-                                               zerolinecolor='rgb(255, 255, 255)',
-                                               showbackground=True,
-                                               backgroundcolor='rgb(230, 230,230)')
-                                    ),
-                          showlegend=False,
-                            )
+                           scene=dict(aspectmode='data',
+                                      xaxis=dict(gridcolor='rgb(255, 255, 255)',
+                                                 zerolinecolor='rgb(255, 255, 255)',
+                                                 showbackground=True,
+                                                 backgroundcolor='rgb(230, 230,230)'),
+                                      yaxis=dict(gridcolor='rgb(255, 255, 255)',
+                                                 zerolinecolor='rgb(255, 255, 255)',
+                                                 showbackground=True,
+                                                 backgroundcolor='rgb(230, 230,230)'),
+                                      zaxis=dict(gridcolor='rgb(255, 255, 255)',
+                                                 zerolinecolor='rgb(255, 255, 255)',
+                                                 showbackground=True,
+                                                 backgroundcolor='rgb(230, 230,230)')
+                                      ),
+                          legend=dict(yanchor="top",
+                                      y=0.99,
+                                      xanchor="left",
+                                      x=0.01
+                                      ))
+
         self.layout = layout
 
 
@@ -159,6 +209,7 @@ class PlotlyViewer(object):
 
         self.data.append(source)
 
+
 if __name__ == "__main__":
 
     for i in range(50): print('')
@@ -173,6 +224,7 @@ if __name__ == "__main__":
 
     room = Room.from_json(compas_roomacoustics.get(filename))
     v = PlotlyViewer(room)
+    v.plot_materials = True
     v.show()
 
 
