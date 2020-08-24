@@ -36,13 +36,18 @@ class PlotlyViewer(object):
 
     def _show(self):
 
+        for i in range(1, len(self.fig.data)):
+            self.fig.data[i].visible = False
+        self.fig.data[-1].visible = True
+        self.fig.data[-2].visible = True
+
         steps = []
         freq = sorted(list(self.room.freq.keys()), key=float)
         for f in freq:
             step = {'method':'update',
                     'args':[{'visible': [False] * (len(self.room.freq) + 2)},
-                            {'title': 'testing'}],
-                    'label':str(self.room.freq[f])}
+                            {'title': 'EDT - {} Hz'.format(self.room.freq[f])}],
+                    'label':'{} Hz'.format(self.room.freq[f])}
             step["args"][0]["visible"][f] = True
             step["args"][0]["visible"][-1] = True
             step["args"][0]["visible"][-2] = True
@@ -71,10 +76,9 @@ class PlotlyViewer(object):
                 z.append(pt[2])
                 values.append(room.results[key].edt[freq])
 
-            # text = []
-            # for v in values:
-            #     r, g, b = i_to_rgb((v - min(values))/(max(values) - min(values)))
-            #     text.append('{} = {}'.format(param.upper(),v))
+            text = []
+            for v in values:
+                text.append('{} = {}'.format(param.upper(),v))
 
             points = go.Scatter3d(x=x, y=y, z=z, 
                                   mode='markers',
@@ -85,7 +89,7 @@ class PlotlyViewer(object):
                                   marker_colorscale='Portland',
                                   # marker_colorscale='Viridis',
                                   # marker_colorscale='Thermal',
-                                  # hovertext=text,
+                                  text=text,
                                   )
 
             # key = '{}_{}'.format(param, room.freq[freq])
