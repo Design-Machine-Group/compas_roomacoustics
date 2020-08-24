@@ -24,19 +24,32 @@ srf_layers = ['walls', 'floor', 'ceiling']
 sct = {fk: .2 for fk in frequencies}
 trn = {fk: .0 for fk in frequencies}
 
-abs_wall= {fk: .05 for fk in frequencies}
+abs_wall= {62: .5, 125:.5, 250:.5, 500:.5, 1000:.5, 2000:.5, 4000:.5, 8000:.5}
 mwalls = {'abs': abs_wall, 'sct': sct, 'trn': trn}
 
-abs_floor= {fk: .3 for fk in frequencies}
+abs_floor= {62: .5, 125:.5, 250:.5, 500:.5, 1000:.5, 2000:.5, 4000:.5, 8000:.5}
 mfloor = {'abs': abs_floor, 'sct': sct, 'trn': trn}
 
-abs_cei= {fk: .5 for fk in frequencies}
+abs_cei= {62: .5, 125:.5, 250:.5, 500:.5, 1000:.5, 2000:.5, 4000:.5, 8000:.5}
 mceiling = {'abs': abs_cei, 'sct': sct, 'trn': trn}
+
+abs_box= {62: .5, 125:.5, 250:.5, 500:.5, 1000:.5, 2000:.5, 4000:.5, 8000:.5}
+mbox = {'abs': abs_box, 'sct': sct, 'trn': trn}
+
+abs_glass= {62: .5, 125:.5, 250:.5, 500:.5, 1000:.5, 2000:.5, 4000:.5, 8000:.5}
+mglass = {'abs': abs_glass, 'sct': sct, 'trn': trn}
 
 walls = {'layer': 'walls', 'material': mwalls, 'is_boundary': True}
 floor = {'layer': 'floor', 'material': mfloor, 'is_boundary': True}
 ceiling = {'layer': 'ceiling', 'material': mceiling, 'is_boundary': True}
-srfs_dict = {'walls': walls, 'floor': floor, 'ceiling': ceiling}
+glass = {'layer': 'glass', 'material': mglass, 'is_boundary': True}
+box = {'layer': 'box', 'material': mbox, 'is_boundary': False}
+
+srfs_dict = {'walls': walls,
+             'floor': floor, 
+             'ceiling': ceiling,
+             'box': box,
+             'glass':glass}
 
 src_layer = 'src'
 src_power = .1
