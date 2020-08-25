@@ -160,11 +160,10 @@ if __name__ == '__main__':
     rs.DeleteObjects(rs.AllObjects())
 
     path = 'c:\\users\\tmendeze\\documents\\uw_code\\compas_roomacoustics\\data'
-    filename = 'simple_box.json'
+    filename = 'simple_box_allrecs.json'
     room = Room.from_json(os.path.join(path, filename))
     room.noise = {'62': 55, '125': 50, '250': 55, '500': 40, '1000': 35, '2000': 30, '4000': 25, '8000': 20}
-    room.num_rays = 1000
-    room.ctime = 1000
+    room.num_rays = 10000
+    room.ctime = 2000
     room_to_pachyderm(room, save_curves=False)
-    room.to_json(os.path.join(path, 'simple_box_out.json'))
-
+    room.to_json(os.path.join(path, 'simple_box_allrecs_out.json'))

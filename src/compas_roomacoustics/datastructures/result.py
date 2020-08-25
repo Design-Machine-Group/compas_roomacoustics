@@ -68,6 +68,7 @@ class Result(object):
 
         return data
 
+
     @data.setter
     def data(self, data):
         self.name           = data.get('name') or {}
@@ -80,11 +81,10 @@ class Result(object):
         #     self.sch_int[literal_eval(key)] = sch_int[key]
 
         parameters  = data.get('parameters') or {}
-        self.parameters = {}
         for param in parameters:
             self.parameters[param] = {}
             for key in parameters[param]:
-                self.parameters[param][key] = parameters[param][key]
+                self.parameters[param][literal_eval(str(key))] = parameters[param][key]
 
 
     @classmethod

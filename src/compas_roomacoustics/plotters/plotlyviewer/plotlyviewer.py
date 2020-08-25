@@ -24,6 +24,7 @@ class PlotlyViewer(object):
         self.data           = []
         self.plot_materials = False
 
+
     def show(self):
         self.make_layout()
         self.add_recdata()
@@ -123,7 +124,7 @@ class PlotlyViewer(object):
                 x.append(pt[0])
                 y.append(pt[1])
                 z.append(pt[2])
-                values.append(room.results[key].edt[freq])
+                values.append(room.results[key].parameters[param][freq])
 
             text = []
             for v in values:
@@ -221,13 +222,13 @@ if __name__ == "__main__":
 
     for i in range(20): print('')
 
-    # filename = 'simple_box_out.json'
-    filename = 'simple_box_allrecs_out.json'
+    filename = 'simple_box_out.json'
+    # filename = 'simple_box_allrecs_out.json'
 
-    # room = Room.from_json(compas_roomacoustics.get(filename))
-    # v = PlotlyViewer(room)
-    # v.plot_materials = True
-    # v.show()
+    room = Room.from_json(compas_roomacoustics.get(filename))
+    v = PlotlyViewer(room)
+    v.plot_materials = True
+    v.show()
 
 
 
