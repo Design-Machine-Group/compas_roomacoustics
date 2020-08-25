@@ -1,7 +1,0 @@
-{
-    "python.pythonPath": "/Users/tmendeze/opt/anaconda3/envs/time/bin/python",
-    "python.linting.banditEnabled": true,
-    "python.linting.pylintEnabled": false,
-    "python.linting.enabled": true,
-    "python.linting.flake8Enabled": false
-}
