@@ -2,3 +2,4 @@
 *.3dmbak
 *.DS_Store
 temp/**
+.vscode/**

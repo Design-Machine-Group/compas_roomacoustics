@@ -222,8 +222,8 @@ if __name__ == "__main__":
 
     for i in range(20): print('')
 
-    filename = 'simple_box_out.json'
-    # filename = 'simple_box_allrecs_out.json'
+    # filename = 'simple_box_out.json'
+    filename = 'simple_box_allrecs_out.json'
 
     room = Room.from_json(compas_roomacoustics.get(filename))
     v = PlotlyViewer(room)

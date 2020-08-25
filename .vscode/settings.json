@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "C:\\Users\\tmendeze\\anaconda3\\envs\\timew\\python.exe",
+    "python.pythonPath": "/Users/tmendeze/opt/anaconda3/envs/time/bin/python",
     "python.linting.banditEnabled": true,
     "python.linting.pylintEnabled": false,
     "python.linting.enabled": true,
