@@ -219,13 +219,15 @@ if __name__ == "__main__":
 
     from compas_roomacoustics.datastructures import Room
 
+    for i in range(20): print('')
+
     # filename = 'simple_box_out.json'
     filename = 'simple_box_allrecs_out.json'
 
-    room = Room.from_json(compas_roomacoustics.get(filename))
-    v = PlotlyViewer(room)
-    v.plot_materials = True
-    v.show()
+    # room = Room.from_json(compas_roomacoustics.get(filename))
+    # v = PlotlyViewer(room)
+    # v.plot_materials = True
+    # v.show()
 
 
 

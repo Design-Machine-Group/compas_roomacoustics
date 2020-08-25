@@ -51,28 +51,20 @@ class Result(object):
         data = {'name'          : self.name,
                 'receiver'      : self.receiver,
                 'restype'       : self.restype,
-                'etc'           : {},
-                't30'           : {},
-                'edt'           : {},
-                'sch_int'       : {},
-                'c80'           : {},
-                'sti'           : self.sti,
+                'parameters'    : {},
+                'curves'        : {},
                 }
 
-        for key in self.etc:
-            data['etc'][literal_eval(str(key))] = self.etc[key]
+        # for key in self.etc:
+        #     data['etc'][literal_eval(str(key))] = self.etc[key]
 
-        for key in self.t30:
-            data['t30'][literal_eval(str(key))] = self.t30[key]
+        # for key in self.sch_int:
+        #     data['sch_int'][literal_eval(str(key))] = self.sch_int[key]
 
-        for key in self.edt:
-            data['edt'][literal_eval(str(key))] = self.edt[key]
-
-        for key in self.c80:
-            data['c80'][literal_eval(str(key))] = self.c80[key]
-
-        for key in self.sch_int:
-            data['sch_int'][literal_eval(str(key))] = self.sch_int[key]
+        for param in self.parameters:
+            data['parameters'][param] = {}
+            for key in self.parameters[param]:
+                data['parameters'][param][key] = self.parameters[param][key]
 
         return data
 
@@ -81,32 +73,18 @@ class Result(object):
         self.name           = data.get('name') or {}
         self.receiver       = data.get('receiver') or {}
         self.restype        = data.get('restype') or {}
-        self.sti            = data.get('sti') or {}
 
-        etc  = data.get('etc') or {}
-        self.etc = {}
-        for key in etc:
-            self.etc[literal_eval(key)] = etc[key]
+        # sch_int  = data.get('sch_int') or {}
+        # self.sch_int = {}
+        # for key in sch_int:
+        #     self.sch_int[literal_eval(key)] = sch_int[key]
 
-        t30  = data.get('t30') or {}
-        self.t30 = {}
-        for key in t30:
-            self.t30[literal_eval(key)] = t30[key]
-
-        edt  = data.get('edt') or {}
-        self.edt = {}
-        for key in edt:
-            self.edt[literal_eval(key)] = edt[key]
-
-        c80  = data.get('c80') or {}
-        self.c80 = {}
-        for key in c80:
-            self.c80[literal_eval(key)] = c80[key]
-
-        sch_int  = data.get('sch_int') or {}
-        self.sch_int = {}
-        for key in sch_int:
-            self.sch_int[literal_eval(key)] = sch_int[key]
+        parameters  = data.get('parameters') or {}
+        self.parameters = {}
+        for param in parameters:
+            self.parameters[param] = {}
+            for key in parameters[param]:
+                self.parameters[param][key] = parameters[param][key]
 
 
     @classmethod

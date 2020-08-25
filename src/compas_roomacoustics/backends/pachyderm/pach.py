@@ -128,10 +128,10 @@ def results_from_pach(room, out_data, param, save_curves=False):
     for rk in room.receivers:
         r = Result(rk, restype='Pachyderm')
         for key in results:
-            r.parameters[key] = results[key][rk]
-        
-        print(rk)
-        print(r)
+            if key == 'sti':
+                r.parameters[key] = {i:v for i, v in enumerate(results[key][rk])}
+            else:
+                r.parameters[key] = results[key][rk]
 
         if save_curves:
             sch = {oct: timecurve_to_timedict(sch_int[rk][oct]) for oct in sch_int[rk]}
@@ -139,7 +139,6 @@ def results_from_pach(room, out_data, param, save_curves=False):
             etc = {oct: timecurve_to_timedict(etcs[rk][oct]) for oct in etcs[rk]}
             r.curves['etc'] = etc
 
-        
         room.results[rk] = r
 
 def timecurve_to_timedict(curve):
@@ -167,4 +166,5 @@ if __name__ == '__main__':
     room.num_rays = 1000
     room.ctime = 1000
     room_to_pachyderm(room, save_curves=False)
-    # room.to_json(os.path.join(path, 'simple_box_out.json'))
+    room.to_json(os.path.join(path, 'simple_box_out.json'))
+
