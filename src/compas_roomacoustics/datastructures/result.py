@@ -23,17 +23,9 @@ Type
 ----
 {1}
 
-EDT
+Parameters
 ---
 {2}
-
-T30
----
-{3}
-
-STI
----
-{4}
 
 """
 
@@ -41,19 +33,15 @@ STI
 class Result(object):
 
     def __init__(self, receiver, name='RoomResult', restype='GeneralResult'):
-
         self.receiver   = receiver
         self.name       = name
         self.restype    = restype
-        self.etc        = []
-        self.t30        = []
-        self.edt        = []
-        self.sch_int    = []
-        self.sti        = []
+        self.curves     = {}
+        self.parameters = {}
 
 
     def __str__(self):
-        return TPL.format(self.receiver, self.restype, self.edt, self.t30, self.sti)
+        return TPL.format(self.receiver, self.restype, list(self.parameters.keys()))
 
 
     @property

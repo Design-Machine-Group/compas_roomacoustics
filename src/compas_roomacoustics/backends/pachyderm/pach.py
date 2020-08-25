@@ -127,21 +127,19 @@ def results_from_pach(room, out_data, param, save_curves=False):
     
     for rk in room.receivers:
         r = Result(rk, restype='Pachyderm')
-        if 'edt' in results:
-            r.edt = results['edt'][rk]
-        if 't30' in results:
-            r.t30 = results['t30'][rk]
-        if 'sti' in results:
-            r.sti = results['sti'][rk]
-        if 'c80' in results:
-            r.c80 = results['c80'][rk]
+        for key in results:
+            r.parameters[key] = results[key][rk]
+        
+        print(rk)
+        print(r)
 
         if save_curves:
             sch = {oct: timecurve_to_timedict(sch_int[rk][oct]) for oct in sch_int[rk]}
-            r.sch_int =  sch
-
+            r.curves['sch_int'] =  sch
             etc = {oct: timecurve_to_timedict(etcs[rk][oct]) for oct in etcs[rk]}
-            r.etc = etc
+            r.curves['etc'] = etc
+
+        
         room.results[rk] = r
 
 def timecurve_to_timedict(curve):
@@ -163,10 +161,10 @@ if __name__ == '__main__':
     rs.DeleteObjects(rs.AllObjects())
 
     path = 'c:\\users\\tmendeze\\documents\\uw_code\\compas_roomacoustics\\data'
-    filename = 'simple_box_allrecs.json'
+    filename = 'simple_box.json'
     room = Room.from_json(os.path.join(path, filename))
     room.noise = {'62': 55, '125': 50, '250': 55, '500': 40, '1000': 35, '2000': 30, '4000': 25, '8000': 20}
-    room.num_rays = 5000
-    room.ctime = 2000
+    room.num_rays = 1000
+    room.ctime = 1000
     room_to_pachyderm(room, save_curves=False)
-    room.to_json(os.path.join(path, 'simple_box_allrecs_out_2.json'))
+    # room.to_json(os.path.join(path, 'simple_box_out.json'))
